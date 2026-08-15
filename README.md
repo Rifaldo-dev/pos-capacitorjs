@@ -3,7 +3,7 @@
 POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [POS UMKM Rifaldo v1.4.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.4.0)
+> **Release publik:** [POS UMKM Rifaldo v1.5.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.5.0)
 
 ## Tampilan aplikasi
 
@@ -67,7 +67,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 |---|---|
 | Dashboard | Ringkasan penjualan, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. |
 | Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
-| Scan kamera | Scan QR/barcode dari kamera Android dengan kamera belakang, orientasi adaptif, decoder Google ML Kit untuk format QR dan barcode retail umum, torch, suara/getar setelah berhasil, pencegahan scan ganda, status kode, retry, pencarian produk otomatis, serta alur barcode-first untuk membuka form tambah produk dengan barcode terisi. |
+| Scan kamera | Scanner native Android melalui Capacitor Plugin/Bridge dengan CameraX dan Google ML Kit bundled; berjalan 100% offline dan mendukung EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF, serta QR Code, lalu mencari produk lokal atau membuka form barcode-first. |
 | Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. |
 | Stok | Tambah, kurangi, atau set stok; catatan alasan; validasi agar stok tidak negatif; serta riwayat stock movement dengan stok sebelum dan sesudah. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk, dan bagikan struk. |
@@ -78,7 +78,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 
 Setelah aplikasi diinstal, buka menu **Pengaturan**. Masukkan nama toko, alamat, nomor telepon, dan footer yang ingin ditampilkan pada struk. Upload logo toko dalam format PNG, JPG, atau WebP. Logo dan identitas tersebut akan digunakan pada header aplikasi, dialog struk, hasil cetak, dan data backup lokal.
 
-Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Scanner v1.4.0 memakai kamera belakang yang dikendalikan langsung oleh aplikasi melalui decoder `html5-qrcode` yang dibundel di WebView, sehingga QR serta barcode retail umum seperti EAN, UPC, dan Code 128 diproses offline tanpa activity scanner native. Jika kamera sulit membaca, tombol **Pilih gambar barcode** dapat memproses foto atau screenshot kode secara lokal. Setelah berhasil, aplikasi memberi suara/getar, menampilkan jenis dan nilai kode, mencegah kode yang sama masuk dua kali dalam waktu singkat, lalu mencari SKU/barcode dan memasukkan produk ke keranjang. Jika kode belum terdaftar, aplikasi langsung membuka form **Tambah produk** dengan barcode tersebut sudah terisi sehingga pengguna dapat melengkapi data dan menyimpan produk baru tanpa mengetik ulang kode.
+Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Scanner v1.5.0 membuka kamera native Android melalui plugin Capacitor khusus; frame kamera diproses langsung oleh CameraX dan Google ML Kit bundled di perangkat, bukan oleh HTML, JavaScript, WebView, CDN, server, atau API online. Scanner mendukung EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF, dan QR Code. Setelah berhasil, hasil dikembalikan melalui bridge ke React, aplikasi memberi suara/getar, menampilkan jenis dan nilai kode, mencegah kode yang sama masuk dua kali dalam waktu singkat, lalu mencari barcode pada database lokal dan memasukkan produk ke keranjang. Jika kode belum terdaftar, aplikasi langsung membuka form **Tambah produk** dengan barcode tersebut sudah terisi sehingga pengguna dapat melengkapi data dan menyimpan produk baru tanpa mengetik ulang kode.
 
 Untuk mendaftarkan produk dari awal, buka menu **Produk** lalu tekan **Scan barcode**. Setelah kamera membaca kode yang belum terdaftar, form tambah produk terbuka otomatis dan menampilkan notifikasi hijau bahwa barcode telah berhasil dipindai. Sistem menolak barcode yang sudah digunakan produk lain, baik ketika hasil scan ditemukan maupun ketika form disimpan. Jika ingin memasukkan barcode secara manual atau memindai dari form, tekan **＋ Tambah produk** lalu gunakan tombol **▣ Scan** pada kolom barcode.
 
@@ -128,7 +128,7 @@ APK debug dihasilkan pada lokasi berikut:
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Atau unduh APK siap instal dari [GitHub Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.4.0).
+Atau unduh APK siap instal dari [GitHub Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.5.0).
 
 ## Arsitektur offline
 
@@ -138,13 +138,15 @@ Struktur utama project adalah sebagai berikut:
 
 ```text
 src/
-├── App.tsx             # UI UMKM, bottom navigation, kasir, scanner, branding, struk
+├── App.tsx             # UI UMKM, bottom navigation, kasir, scanner bridge, branding, struk
+├── nativeScanner.ts    # typed Capacitor bridge ke scanner Android native
 ├── types.ts            # domain types dan store settings
 ├── pos.ts              # kalkulasi dan validasi domain
 ├── storage.ts          # SQLite initialization, migration, persistence, backup
 ├── pos.test.ts         # unit tests
 └── styles.css          # mobile-first UI dan print stylesheet
 android/                # project Capacitor Android dengan Gradle Wrapper
+android/app/src/main/java/pos/rifaldo/NativeBarcodeScannerPlugin.java # CameraX + ML Kit native scanner
 capacitor.config.ts     # appId: pos.rifaldo
 docs/                   # catatan scanner dan screenshot UI
 releases/               # APK dan checksum yang ikut dipush ke repository
@@ -188,20 +190,20 @@ npm run lint
 npm run build
 ```
 
-Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **3 test lulus, lint 0 warning/0 error, web build berhasil, Android debug build berhasil, serta browser smoke test CRUD berhasil**. Scanner native perlu divalidasi lagi pada perangkat Android fisik dengan contoh QR dan barcode yang digunakan oleh UMKM.
+Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **3 test lulus, lint 0 warning/0 error, web build berhasil, dan Android debug build berhasil**. Validasi kamera fisik tetap perlu dilakukan pada perangkat Android target dengan koneksi internet dimatikan.
 
 ## GitHub Release
 
-Rilis publik terbaru tersedia pada [v1.4.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.4.0). Versi ini mengganti activity scanner native dengan scanner kamera langsung di dalam aplikasi menggunakan `html5-qrcode` yang dibundel, sehingga frame kamera dan gambar barcode diproses lokal tanpa internet.
+Rilis publik terbaru tersedia pada [v1.5.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.5.0). Versi ini menghapus scanner HTML/JavaScript dan menggantinya dengan plugin Android native yang menggunakan CameraX serta dependency `com.google.mlkit:barcode-scanning:17.3.0` bundled. Model barcode berada di dalam APK sehingga pemindaian tidak membutuhkan download model saat runtime.
 
 | Asset | Keterangan |
 |---|---|
-| `pos-rifaldo-scanner-direct-offline-debug.apk` | APK debug v1.4.0 dengan scanner kamera langsung dan fallback pemindaian gambar offline. |
-| `pos-rifaldo-scanner-direct-offline-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi APK scanner langsung. |
+| `pos-rifaldo-native-offline-debug.apk` | APK debug v1.5.0 dengan scanner kamera native Android dan decoding lokal ML Kit. |
+| `pos-rifaldo-native-offline-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi APK scanner native. |
 
-### Catatan rilis v1.4.0
+### Catatan rilis v1.5.0
 
-Scanner sekarang tidak lagi bergantung pada activity scanner native yang sebelumnya membuka kamera tetapi tidak mengembalikan hasil. Aplikasi mengendalikan preview kamera, area bidik, frame rate, dan daftar format secara langsung. Tombol **Pilih gambar barcode** tersedia sebagai fallback untuk foto atau screenshot QR/barcode. Seluruh decoding berjalan di perangkat; koneksi internet tidak digunakan.
+Scanner kini mengikuti alur **Klik Scan Product → Native Camera Scanner → Deteksi lokal → hasil melalui Capacitor Bridge → pencarian database lokal → keranjang atau form Add Product**. Tidak ada `html5-qrcode`, scanner WebView, CDN, API, atau server yang digunakan. Permission kamera dideklarasikan pada Android dan diminta saat runtime melalui permission callback plugin.
 
 ## Keterbatasan saat ini
 

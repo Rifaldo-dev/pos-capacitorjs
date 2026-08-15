@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { createBackup, initializeStore, newId, parseBackup, persistState, seedDemoData, timestamp } from './storage'
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import { NativeBarcodeScanner } from './nativeScanner'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
 import type { CartItem, Page, PaymentMethod, PosState, Product, Transaction } from './types'
 import './styles.css'
@@ -35,10 +35,8 @@ function App() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [showSeedConfirm, setShowSeedConfirm] = useState(false)
   const [scannerBusy, setScannerBusy] = useState(false)
-  const [showOfflineScanner, setShowOfflineScanner] = useState(false)
   const [scannerNotice, setScannerNotice] = useState<ScannerNotice>({ status: 'idle', message: 'Siap memindai QR atau barcode produk.' })
   const lastScanRef = useRef<{ code: string; at: number } | null>(null)
-  const offlineScanResolverRef = useRef<((code: string | null) => void) | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { initializeStore().then(setState) }, [])
@@ -72,39 +70,35 @@ function App() {
     setToast(`${product.name} masuk keranjang`)
   }
 
-  const finishOfflineScan = (rawCode: string | null, format = 'QR / barcode offline') => {
-    const code = rawCode?.trim() || null
-    const resolve = offlineScanResolverRef.current
-    offlineScanResolverRef.current = null
-    if (!code) {
-      setScannerNotice({ status: 'cancelled', message: 'Scan dibatalkan. Tekan tombol scan untuk mencoba lagi.' })
-      setShowOfflineScanner(false)
-      setScannerBusy(false)
-      resolve?.(null)
-      return
-    }
-    const now = Date.now()
-    if (lastScanRef.current && lastScanRef.current.code === code && now - lastScanRef.current.at < 1800) {
-      setScannerNotice({ status: 'duplicate', message: 'Kode yang sama baru saja terbaca. Scan ganda diabaikan.', code, format })
-      setShowOfflineScanner(false)
-      setScannerBusy(false)
-      resolve?.(null)
-      return
-    }
-    lastScanRef.current = { code, at: now }
-    scannerFeedback()
-    setScannerNotice({ status: 'success', message: 'Kode berhasil terbaca offline.', code, format })
-    setShowOfflineScanner(false)
-    setScannerBusy(false)
-    resolve?.(code)
-  }
-
-  const scanProductCode = (): Promise<string | null> => {
-    if (scannerBusy) return Promise.resolve(null)
+  const scanProductCode = async (): Promise<string | null> => {
+    if (scannerBusy) return null
     setScannerBusy(true)
-    setScannerNotice({ status: 'opening', message: 'Membuka kamera scanner offline...' })
-    setShowOfflineScanner(true)
-    return new Promise((resolve) => { offlineScanResolverRef.current = resolve })
+    setScannerNotice({ status: 'opening', message: 'Membuka native camera scanner offline...' })
+    try {
+      const result = await NativeBarcodeScanner.scan()
+      const code = result.content?.trim() || null
+      if (!code) {
+        setScannerNotice({ status: 'cancelled', message: 'Scan dibatalkan. Tekan tombol scan untuk mencoba lagi.' })
+        return null
+      }
+      const now = Date.now()
+      const format = result.format || 'Barcode / QR'
+      if (lastScanRef.current && lastScanRef.current.code === code && now - lastScanRef.current.at < 1800) {
+        setScannerNotice({ status: 'duplicate', message: 'Kode yang sama baru saja terbaca. Scan ganda diabaikan.', code, format })
+        return null
+      }
+      lastScanRef.current = { code, at: now }
+      scannerFeedback()
+      setScannerNotice({ status: 'success', message: 'Kode berhasil terbaca oleh scanner native.', code, format })
+      return code
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Scanner native tidak tersedia.'
+      const cancelled = message.includes('SCAN_CANCELLED') || message.includes('SCAN_INTERRUPTED') || message.toLowerCase().includes('dibatalkan')
+      setScannerNotice({ status: cancelled ? 'cancelled' : 'error', message: cancelled ? 'Scan dibatalkan. Tekan tombol scan untuk mencoba lagi.' : message })
+      return null
+    } finally {
+      setScannerBusy(false)
+    }
   }
 
   const openAddProduct = (barcode = '') => {
@@ -258,7 +252,6 @@ function App() {
     </main>
     <BottomNav page={page} onNavigate={navigate} />
     {toast && <div className="toast"><span>✓</span>{toast}</div>}
-    {showOfflineScanner && <OfflineScannerModal onDetected={finishOfflineScan} onClose={() => finishOfflineScan(null)} onError={(message) => setScannerNotice({ status: 'error', message })} />}
     {(showProductForm || editingProduct) && <ProductModal key={`${editingProduct?.id ?? 'new'}-${prefilledBarcode}`} state={state} product={editingProduct} prefilledBarcode={prefilledBarcode} onClose={() => { setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode('') }} onSubmit={saveProduct} onScan={scanProductCode} />}
     {stockProduct && <StockAdjustModal product={stockProduct} onClose={() => setStockProduct(null)} onSubmit={adjustStock} />}
     {showPayment && <PaymentModal state={state} cart={cart} onClose={() => setShowPayment(false)} onSubmit={completeTransaction} />}
@@ -266,117 +259,6 @@ function App() {
     {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onImport={() => importRef.current?.click()} />}
     <input ref={importRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importBackup} />
     {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur POS UMKM." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
-  </div>
-}
-
-function OfflineScannerModal({ onDetected, onClose, onError }: { onDetected: (code: string, format?: string) => void; onClose: () => void; onError: (message: string) => void }) {
-  const scannerRef = useRef<Html5Qrcode | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const closedRef = useRef(false)
-  const onDetectedRef = useRef(onDetected)
-  const onErrorRef = useRef(onError)
-  onDetectedRef.current = onDetected
-  onErrorRef.current = onError
-  const [status, setStatus] = useState('Menyiapkan kamera offline...')
-  const [busyFile, setBusyFile] = useState(false)
-
-  useEffect(() => {
-    const scanner = new Html5Qrcode('offline-scanner-view', {
-      verbose: false,
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.QR_CODE,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.CODE_93,
-        Html5QrcodeSupportedFormats.CODABAR,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.DATA_MATRIX,
-        Html5QrcodeSupportedFormats.PDF_417,
-      ],
-    })
-    scannerRef.current = scanner
-    let active = true
-    const start = async () => {
-      try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 12,
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const side = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.78)
-              return { width: Math.max(side, 220), height: Math.max(side, 220) }
-            },
-            aspectRatio: 1.777778,
-            disableFlip: false,
-          },
-          (decodedText) => {
-            if (!active || closedRef.current) return
-            closedRef.current = true
-            setStatus('Kode berhasil terbaca offline.')
-            void scanner.stop().catch(() => undefined).finally(() => onDetectedRef.current(decodedText, 'QR / barcode offline'))
-          },
-          () => undefined,
-        )
-        if (active) setStatus('Arahkan kamera ke QR atau barcode. Decoding berjalan offline.')
-      } catch (error) {
-        if (!active || closedRef.current) return
-        const detail = error instanceof Error ? error.message : 'kamera tidak dapat dibuka'
-        setStatus('Kamera tidak dapat dibuka. Anda masih dapat memilih gambar barcode.')
-        onErrorRef.current(`Scanner offline tidak dapat membuka kamera: ${detail}`)
-      }
-    }
-    void start()
-    return () => {
-      active = false
-      closedRef.current = true
-      void scanner.stop().catch(() => undefined).finally(() => scanner.clear())
-    }
-  }, [])
-
-  const closeScanner = () => {
-    if (closedRef.current) return
-    closedRef.current = true
-    void scannerRef.current?.stop().catch(() => undefined).finally(onClose)
-  }
-
-  const scanImage = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file || !scannerRef.current) return
-    setBusyFile(true)
-    setStatus('Membaca gambar secara offline...')
-    try {
-      await scannerRef.current.stop().catch(() => undefined)
-      const decodedText = await scannerRef.current.scanFile(file, true)
-      closedRef.current = true
-      onDetectedRef.current(decodedText, 'Gambar offline')
-    } catch {
-      setStatus('QR/barcode belum terbaca dari gambar. Pilih gambar yang lebih terang dan tidak buram.')
-      onErrorRef.current('QR atau barcode belum terbaca dari gambar. Coba foto lebih dekat dan tegak lurus.')
-      if (!closedRef.current) {
-        try {
-          await scannerRef.current.start({ facingMode: 'environment' }, { fps: 12, qrbox: { width: 260, height: 260 }, disableFlip: false }, () => undefined, () => undefined)
-          setStatus('Kamera aktif kembali. Arahkan ke QR atau barcode.')
-        } catch { /* camera restart is optional */ }
-      }
-    } finally {
-      setBusyFile(false)
-    }
-  }
-
-  return <div className="modal-backdrop offline-scanner-backdrop">
-    <section className="offline-scanner-modal" role="dialog" aria-modal="true" aria-labelledby="offline-scanner-title">
-      <header className="modal-header"><div><h2 id="offline-scanner-title">Scan offline</h2><p className="muted">QR dan barcode diproses langsung di perangkat.</p></div><button className="close-button" type="button" onClick={closeScanner} aria-label="Tutup scanner">×</button></header>
-      <div className="offline-scanner-frame"><div id="offline-scanner-view" /></div>
-      <p className="offline-scanner-status" role="status">{status}</p>
-      <div className="offline-scanner-actions"><button className="button secondary" type="button" onClick={() => fileInputRef.current?.click()} disabled={busyFile}>{busyFile ? 'Membaca gambar...' : 'Pilih gambar barcode'}</button><button className="button ghost" type="button" onClick={closeScanner}>Batal</button></div>
-      <input ref={fileInputRef} className="visually-hidden" type="file" accept="image/*" capture="environment" onChange={scanImage} />
-      <p className="offline-scanner-note">Tidak memakai internet. Untuk hasil terbaik, pastikan kode tidak terpotong, tidak miring, dan mendapat cahaya merata.</p>
-    </section>
   </div>
 }
 
