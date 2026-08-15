@@ -77,7 +77,7 @@ function App() {
   const scanProductCode = async (): Promise<string | null> => {
     if (scannerBusy) return null
     setScannerBusy(true)
-    setScannerNotice({ status: 'opening', message: 'Membuka kamera scanner...' })
+    setScannerNotice({ status: 'opening', message: 'Membuka kamera scanner ML Kit...' })
     try {
       const result = await CapacitorBarcodeScanner.scanBarcode({
         hint: CapacitorBarcodeScannerTypeHint.ALL,
@@ -89,7 +89,7 @@ function App() {
         cancelButtonAccessibilityLabel: 'Batal scan',
         torchButtonOnAccessibilityLabel: 'Matikan lampu',
         torchButtonOffAccessibilityLabel: 'Nyalakan lampu',
-        android: { scanningLibrary: CapacitorBarcodeScannerAndroidScanningLibrary.ZXING },
+        android: { scanningLibrary: CapacitorBarcodeScannerAndroidScanningLibrary.MLKIT },
         web: { showCameraSelection: false, scannerFPS: 10 },
       })
       const code = result.ScanResult?.trim() || null

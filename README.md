@@ -3,7 +3,7 @@
 POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [POS UMKM Rifaldo v1.3.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.0)
+> **Release publik:** [POS UMKM Rifaldo v1.3.1](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.1)
 
 ## Tampilan aplikasi
 
@@ -67,7 +67,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 |---|---|
 | Dashboard | Ringkasan penjualan, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. |
 | Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
-| Scan kamera | Scan QR/barcode dari kamera Android dengan kamera belakang, orientasi adaptif, dukungan format luas ZXing, torch, suara/getar setelah berhasil, pencegahan scan ganda, status kode, retry, pencarian produk otomatis, serta alur barcode-first untuk membuka form tambah produk dengan barcode terisi. |
+| Scan kamera | Scan QR/barcode dari kamera Android dengan kamera belakang, orientasi adaptif, decoder Google ML Kit untuk format QR dan barcode retail umum, torch, suara/getar setelah berhasil, pencegahan scan ganda, status kode, retry, pencarian produk otomatis, serta alur barcode-first untuk membuka form tambah produk dengan barcode terisi. |
 | Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. |
 | Stok | Tambah, kurangi, atau set stok; catatan alasan; validasi agar stok tidak negatif; serta riwayat stock movement dengan stok sebelum dan sesudah. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk, dan bagikan struk. |
@@ -78,7 +78,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 
 Setelah aplikasi diinstal, buka menu **Pengaturan**. Masukkan nama toko, alamat, nomor telepon, dan footer yang ingin ditampilkan pada struk. Upload logo toko dalam format PNG, JPG, atau WebP. Logo dan identitas tersebut akan digunakan pada header aplikasi, dialog struk, hasil cetak, dan data backup lokal.
 
-Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Scanner memakai kamera belakang dengan orientasi adaptif dan library ZXing agar QR serta format barcode produk umum dapat dibaca. Setelah berhasil, aplikasi memberi suara/getar, menampilkan jenis dan nilai kode, mencegah kode yang sama masuk dua kali dalam waktu singkat, lalu mencari SKU/barcode dan memasukkan produk ke keranjang. Jika kode belum terdaftar, aplikasi langsung membuka form **Tambah produk** dengan barcode tersebut sudah terisi sehingga pengguna dapat melengkapi data dan menyimpan produk baru tanpa mengetik ulang kode.
+Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Scanner memakai kamera belakang dengan orientasi adaptif dan decoder Google ML Kit agar QR serta barcode retail umum seperti EAN, UPC, dan Code 128 lebih mudah terbaca. Setelah berhasil, aplikasi memberi suara/getar, menampilkan jenis dan nilai kode, mencegah kode yang sama masuk dua kali dalam waktu singkat, lalu mencari SKU/barcode dan memasukkan produk ke keranjang. Jika kode belum terdaftar, aplikasi langsung membuka form **Tambah produk** dengan barcode tersebut sudah terisi sehingga pengguna dapat melengkapi data dan menyimpan produk baru tanpa mengetik ulang kode.
 
 Untuk mendaftarkan produk dari awal, buka menu **Produk** lalu tekan **Scan barcode**. Setelah kamera membaca kode yang belum terdaftar, form tambah produk terbuka otomatis dan menampilkan notifikasi hijau bahwa barcode telah berhasil dipindai. Sistem menolak barcode yang sudah digunakan produk lain, baik ketika hasil scan ditemukan maupun ketika form disimpan. Jika ingin memasukkan barcode secara manual atau memindai dari form, tekan **＋ Tambah produk** lalu gunakan tombol **▣ Scan** pada kolom barcode.
 
@@ -128,7 +128,7 @@ APK debug dihasilkan pada lokasi berikut:
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Atau unduh APK siap instal dari [GitHub Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.0).
+Atau unduh APK siap instal dari [GitHub Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.1).
 
 ## Arsitektur offline
 
@@ -192,16 +192,16 @@ Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian ya
 
 ## GitHub Release
 
-Rilis publik terbaru tersedia pada [v1.3.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.0). Versi ini menambahkan alur barcode-first untuk pendaftaran produk baru tanpa mengubah prinsip offline-first dan package Android `pos.rifaldo`.
+Rilis publik terbaru tersedia pada [v1.3.1](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.3.1). Versi ini adalah hotfix deteksi scanner Android yang mengganti decoder Android dari ZXing ke Google ML Kit untuk meningkatkan pembacaan QR dan barcode retail umum, tanpa mengubah prinsip offline-first dan package Android `pos.rifaldo`.
 
 | Asset | Keterangan |
 |---|---|
-| `pos-rifaldo-barcode-first-debug.apk` | APK debug v1.3.0 dengan alur scan barcode lalu buka form tambah produk otomatis. |
-| `pos-rifaldo-barcode-first-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi file APK barcode-first. |
+| `pos-rifaldo-scanner-mlkit-debug.apk` | APK debug v1.3.1 dengan decoder Google ML Kit untuk peningkatan deteksi QR dan barcode Android. |
+| `pos-rifaldo-scanner-mlkit-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi file APK scanner ML Kit. |
 
-### Catatan rilis v1.3.0
+### Catatan rilis v1.3.1
 
-Pengguna kini dapat menekan **Scan barcode** dari menu Produk atau memindai kode yang belum terdaftar dari Kasir. Aplikasi akan membuka form tambah produk secara otomatis dengan barcode sudah terisi. Validasi duplikasi barcode diterapkan saat hasil scan dan saat penyimpanan form, sementara alur CRUD, pengelolaan stok, scanner ZXing, cetak/bagikan struk, serta penyimpanan offline tetap tersedia.
+Versi ini mempertahankan seluruh fitur barcode-first v1.3.0, tetapi mengganti decoder Android dari ZXing ke Google ML Kit. Perubahan ini ditujukan untuk meningkatkan deteksi barcode retail umum seperti EAN, UPC, dan Code 128 pada perangkat Android. Jika scanner masih belum membaca, gunakan pencahayaan cukup, posisikan seluruh barcode di dalam area kamera, dan jaga jarak perangkat sekitar 15–30 cm dari barcode.
 
 ## Keterbatasan saat ini
 
