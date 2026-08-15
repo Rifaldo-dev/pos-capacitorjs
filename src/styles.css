@@ -153,3 +153,14 @@ p { color: var(--muted); line-height: 1.55; }
 .scanner-duplicate, .scanner-cancelled { border-color: #f1d9a9; background: #fffaf0; } .scanner-duplicate .scanner-feedback-icon, .scanner-cancelled .scanner-feedback-icon { color: #a7630a; background: #ffedc7; }
 .scanner-opening { border-color: #c7d8fb; background: #f5f8ff; } .scanner-opening .scanner-feedback-icon { color: var(--blue); background: #e2ebff; }
 @media (max-width: 720px) { .cashier-search-row { display: grid; grid-template-columns: 1fr; gap: 8px; } .cashier-search-row .scan-button { width: 100%; } .scanner-feedback { align-items: flex-start; } }
+
+
+/* Barcode-first add-product workflow */
+.toolbar-actions { display: flex; align-items: center; gap: 9px; }
+.scan-add-button { white-space: nowrap; }
+.scanner-prefill-notice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 11px 12px; border: 1px solid #bfe8d0; border-radius: 10px; color: #17794e; background: #eaf9f0; }
+.scanner-prefill-notice > span { display: grid; place-items: center; flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; color: white; background: var(--green); font-size: 13px; font-weight: 900; }
+.scanner-prefill-notice strong, .scanner-prefill-notice small { display: block; }
+.scanner-prefill-notice strong { font-size: 11px; }
+.scanner-prefill-notice small { margin-top: 3px; color: #3a805e; font-size: 10px; line-height: 1.4; }
+@media (max-width: 600px) { .toolbar-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; } .toolbar-actions .button { width: 100%; margin-top: 0; padding-left: 8px; padding-right: 8px; font-size: 11px; } }
