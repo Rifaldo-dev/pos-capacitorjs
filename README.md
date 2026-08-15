@@ -19,6 +19,48 @@ Layout mobile dirancang untuk penggunaan kasir sehari-hari. Bottom navigation me
 
 ![Dashboard mobile POS UMKM Rifaldo](docs/screenshots/dashboard-mobile.png)
 
+## Galeri semua menu
+
+Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation POS UMKM Rifaldo. Galeri ini menunjukkan keadaan awal aplikasi dengan data kosong agar setiap UMKM dapat melihat struktur layar sebelum mengatur toko dan memasukkan katalog mereka.
+
+![Galeri seluruh menu POS UMKM Rifaldo](docs/screenshots/menu-gallery.png)
+
+### Beranda
+
+Ringkasan operasional toko: status offline, identitas toko, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat.
+
+![Menu Beranda](docs/screenshots/menu-dashboard.png)
+
+### Kasir
+
+Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan QR / barcode**, daftar produk, keranjang, ringkasan pajak, total, dan tombol pembayaran.
+
+![Menu Kasir](docs/screenshots/menu-kasir.png)
+
+### Produk
+
+Katalog produk dengan pencarian, SKU/barcode, kategori, harga jual, stok, dan aksi tambah produk. Barcode dapat diisi dari kamera melalui form produk.
+
+![Menu Produk](docs/screenshots/menu-produk.png)
+
+### Stok
+
+Kontrol persediaan yang menampilkan total produk, stok menipis, produk habis, status minimum, dan aksi restock.
+
+![Menu Stok](docs/screenshots/menu-stok.png)
+
+### Transaksi
+
+Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, status, dan akses ke detail struk.
+
+![Menu Transaksi](docs/screenshots/menu-transaksi.png)
+
+### Pengaturan
+
+Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, cetak otomatis, backup/restore, dan data demo.
+
+![Menu Pengaturan](docs/screenshots/menu-pengaturan.png)
+
 ## Fitur utama
 
 | Area | Kemampuan |
