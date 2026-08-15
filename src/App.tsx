@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { createBackup, initializeStore, newId, parseBackup, persistState, seedDemoData, timestamp } from './storage'
+import { Capacitor } from '@capacitor/core'
 import { CapacitorBarcodeScanner, CapacitorBarcodeScannerAndroidScanningLibrary, CapacitorBarcodeScannerCameraDirection, CapacitorBarcodeScannerScanOrientation, CapacitorBarcodeScannerTypeHint } from '@capacitor/barcode-scanner'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
 import type { CartItem, Page, PaymentMethod, PosState, Product, Transaction } from './types'
@@ -12,6 +13,10 @@ type ScannerNotice = { status: 'idle' | 'opening' | 'success' | 'not-found' | 'd
 function scannerFormatLabel(format: unknown) {
   return format === CapacitorBarcodeScannerTypeHint.QR_CODE ? 'QR Code' : 'Barcode'
 }
+
+// @capacitor/barcode-scanner 3.1.x reserves Android enum index 17 for UNKNOWN.
+// Passing 18 makes the native enum lookup return null, which intentionally means all formats.
+const ANDROID_ALL_FORMATS_HINT = 18 as CapacitorBarcodeScannerTypeHint
 
 function scannerFeedback() {
   try { if (typeof navigator.vibrate === 'function') navigator.vibrate([70, 45, 70]) } catch { /* vibration is optional */ }
@@ -77,10 +82,10 @@ function App() {
   const scanProductCode = async (): Promise<string | null> => {
     if (scannerBusy) return null
     setScannerBusy(true)
-    setScannerNotice({ status: 'opening', message: 'Membuka kamera scanner ML Kit...' })
+    setScannerNotice({ status: 'opening', message: 'Membuka kamera scanner offline...' })
     try {
       const result = await CapacitorBarcodeScanner.scanBarcode({
-        hint: CapacitorBarcodeScannerTypeHint.ALL,
+        hint: Capacitor.getPlatform() === 'android' ? ANDROID_ALL_FORMATS_HINT : CapacitorBarcodeScannerTypeHint.ALL,
         scanInstructions: 'Arahkan kamera ke QR atau barcode produk',
         scanButton: true,
         scanText: 'Scan lagi',
