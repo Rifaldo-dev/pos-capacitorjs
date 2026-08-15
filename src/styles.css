@@ -164,3 +164,20 @@ p { color: var(--muted); line-height: 1.55; }
 .scanner-prefill-notice strong { font-size: 11px; }
 .scanner-prefill-notice small { margin-top: 3px; color: #3a805e; font-size: 10px; line-height: 1.4; }
 @media (max-width: 600px) { .toolbar-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; } .toolbar-actions .button { width: 100%; margin-top: 0; padding-left: 8px; padding-right: 8px; font-size: 11px; } }
+
+
+/* Direct offline camera scanner */
+.offline-scanner-backdrop { padding: 0; background: rgba(8, 12, 20, .82); }
+.offline-scanner-modal { width: min(620px, 100%); min-height: 100vh; overflow: auto; color: var(--ink); background: #fff; }
+.offline-scanner-modal .modal-header { position: sticky; top: 0; z-index: 2; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
+.offline-scanner-modal .modal-header h2 { margin-bottom: 3px; }
+.offline-scanner-frame { min-height: min(66vh, 620px); display: grid; place-items: center; overflow: hidden; background: #090b10; }
+#offline-scanner-view { width: 100%; min-height: min(66vh, 620px); }
+#offline-scanner-view video { display: block; width: 100% !important; height: min(66vh, 620px) !important; object-fit: cover; }
+#offline-scanner-view > div:first-child { width: 100% !important; border: 0 !important; }
+#offline-scanner-view img[alt="Info icon"] { display: none; }
+.offline-scanner-status { min-height: 44px; margin: 0; padding: 13px 20px 4px; color: #485466; font-size: 12px; line-height: 1.45; }
+.offline-scanner-actions { display: flex; gap: 9px; padding: 10px 20px 0; }
+.offline-scanner-actions .button { flex: 1; }
+.offline-scanner-note { margin: 12px 20px 22px; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: center; }
+@media (max-width: 600px) { .offline-scanner-modal { border-radius: 0; } .offline-scanner-frame, #offline-scanner-view { min-height: 62vh; } #offline-scanner-view video { height: 62vh !important; } .offline-scanner-actions { flex-direction: column; } }
