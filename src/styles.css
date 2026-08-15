@@ -114,3 +114,29 @@ p { color: var(--muted); line-height: 1.55; }
 .inline-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
 .receipt-logo-image { width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 12px; object-fit: contain; }
 @media (max-width: 680px) { .cashier-search-row { flex-direction: column; } .scan-button { width: 100%; } .logo-setting { align-items: flex-start; } }
+
+.table-actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 260px; }
+.danger-outline { border-color: #f0b8b4; color: #b43b37; background: #fff8f7; }
+.inactive-row { opacity: .68; background: #fcfcfd; }
+.form-hint { margin: -2px 0 0; padding: 10px 12px; border-radius: 10px; color: #737d8c; background: #f7f8fb; font-size: 11px; }
+.movement-panel { margin-top: 16px; overflow: hidden; }
+.movement-list { padding: 5px 18px 12px; }
+.movement-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 11px 0; border-bottom: 1px solid #f0f1f4; }
+.movement-row:last-child { border-bottom: 0; }
+.movement-row strong, .movement-row small { display: block; }
+.movement-row strong { font-size: 12px; }
+.movement-row small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.movement-row b { color: var(--ink); font-size: 12px; }
+.movement-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.movement-dot.restock { background: var(--green); }
+.movement-dot.sale { background: var(--primary); }
+.movement-dot.refund { background: var(--purple); }
+.movement-dot.adjustment { background: var(--orange); }
+.stock-adjust-summary, .stock-adjust-preview { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 13px; background: #fff7f1; color: var(--muted); font-size: 12px; }
+.stock-adjust-summary strong, .stock-adjust-preview strong { color: var(--primary-dark); font-size: 20px; letter-spacing: -.03em; }
+.stock-adjust-form { display: grid; gap: 14px; margin-top: 15px; }
+.stock-adjust-form label { display: block; color: #5e6878; font-size: 12px; font-weight: 700; }
+.stock-adjust-form input, .stock-adjust-form select, .stock-adjust-form textarea { display: block; width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--ink); background: white; font-size: 13px; resize: vertical; }
+.stock-adjust-preview { margin-top: 2px; background: #f1faf6; }
+.stock-adjust-preview strong { color: #17794e; }
+@media (max-width: 720px) { .table-actions { min-width: 230px; } .movement-row { grid-template-columns: 10px 1fr; } .movement-row b { grid-column: 2; } }

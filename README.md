@@ -39,13 +39,13 @@ Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan QR / barcode**,
 
 ### Produk
 
-Katalog produk dengan pencarian, SKU/barcode, kategori, harga jual, stok, dan aksi tambah produk. Barcode dapat diisi dari kamera melalui form produk.
+Katalog produk dengan pencarian, SKU/barcode, kategori, harga beli/jual, stok, minimum stok, status aktif, dan aksi CRUD. Pengguna dapat menambah produk, mengedit detail produk, menonaktifkan atau mengaktifkan kembali produk, dan menghapus produk yang belum memiliki histori transaksi. Barcode dapat diisi dari kamera melalui form produk.
 
 ![Menu Produk](docs/screenshots/menu-produk.png)
 
 ### Stok
 
-Kontrol persediaan yang menampilkan total produk, stok menipis, produk habis, status minimum, dan aksi restock.
+Kontrol persediaan yang menampilkan total produk, stok menipis, produk habis, status minimum, dan aksi **Atur stok**. Stok dapat ditambah, dikurangi, atau di-set ke jumlah tertentu dengan catatan perubahan. Semua perubahan menyimpan stok sebelum, stok sesudah, jumlah perubahan, alasan, dan waktu.
 
 ![Menu Stok](docs/screenshots/menu-stok.png)
 
@@ -68,8 +68,8 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Dashboard | Ringkasan penjualan, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. |
 | Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
 | Scan kamera | Scan QR/barcode dari kamera Android untuk menemukan produk dan memasukkannya langsung ke keranjang. Form tambah produk juga dapat mengisi barcode dari kamera. |
-| Produk | Katalog produk, kategori, harga beli/jual, stok, batas minimum, barcode/SKU, status aktif, dan stok negatif yang dapat diatur. |
-| Stok | Pergerakan stok, restock manual, penyesuaian stok, dan informasi stok menipis. |
+| Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. |
+| Stok | Tambah, kurangi, atau set stok; catatan alasan; validasi agar stok tidak negatif; serta riwayat stock movement dengan stok sebelum dan sesudah. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk, dan bagikan struk. |
 | Branding UMKM | Ubah nama toko, upload logo, alamat, nomor telepon, footer struk, pajak, serta pilihan cetak otomatis. |
 | Data offline | SQLite lokal pada Android, localStorage fallback pada browser preview, backup/restore JSON berversi, dan seed data demo. |
@@ -78,7 +78,17 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 
 Setelah aplikasi diinstal, buka menu **Pengaturan**. Masukkan nama toko, alamat, nomor telepon, dan footer yang ingin ditampilkan pada struk. Upload logo toko dalam format PNG, JPG, atau WebP. Logo dan identitas tersebut akan digunakan pada header aplikasi, dialog struk, hasil cetak, dan data backup lokal.
 
-Untuk menggunakan scanner, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Jika kode cocok dengan SKU atau barcode produk, item akan langsung ditambahkan ke keranjang. Saat membuat produk baru, tombol scan pada form produk dapat digunakan untuk mengisi barcode tanpa mengetik manual.
+Untuk menggunakan scanner, buka **Kasir** lalu tekan tombol **Scan QR / barcode**. Izinkan akses kamera Android ketika diminta. Jika kode cocok dengan SKU atau barcode produk, item akan langsung ditambahkan ke keranjang. Saat membuat atau mengedit produk, tombol scan pada form produk dapat digunakan untuk mengisi barcode tanpa mengetik manual.
+
+Untuk mengelola katalog, buka **Produk**. Tekan **Edit** untuk mengubah informasi produk, harga, kategori, barcode, minimum stok, atau stok. Untuk operasi stok harian yang lebih cepat, buka **Stok**, tekan **Atur stok**, lalu pilih salah satu mode berikut:
+
+| Mode | Kegunaan |
+|---|---|
+| Tambah stok | Restock dari supplier atau stok masuk lainnya. |
+| Kurangi stok | Produk rusak, kedaluwarsa, hilang, atau penyesuaian keluar. |
+| Set stok | Stock opname atau koreksi ke jumlah fisik terbaru. |
+
+Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar histori invoice tetap aman. Gunakan **Nonaktifkan** supaya produk tidak muncul lagi di Kasir; produk tersebut dapat diaktifkan kembali kapan saja.
 
 Struk dapat dicetak melalui dialog print Android/browser atau dibagikan melalui Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
 
@@ -176,7 +186,7 @@ npm run lint
 npm run build
 ```
 
-Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **3 test lulus, lint 0 warning/0 error, web build berhasil, dan Android debug build berhasil**.
+Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **3 test lulus, lint 0 warning/0 error, web build berhasil, Android debug build berhasil, serta browser smoke test CRUD berhasil** untuk tambah produk, edit produk, penyesuaian stok, dan penonaktifan produk.
 
 ## GitHub Release
 
