@@ -3,7 +3,8 @@
 POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [POS UMKM Rifaldo v1.7.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.7.0)
+> **Release publik:** [POS UMKM Rifaldo v1.7.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.7.0)  
+> **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)
 
 ## Tampilan aplikasi
 
