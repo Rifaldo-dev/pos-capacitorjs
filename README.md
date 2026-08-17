@@ -22,7 +22,7 @@ Layout mobile dirancang untuk kenyamanan kasir harian dengan bilah navigasi bawa
 
 ## Galeri semua menu
 
-Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation POS UMKM Rifaldo. Galeri ini menunjukkan keadaan awal aplikasi dengan data kosong agar setiap UMKM dapat melihat struktur layar sebelum mengatur toko dan memasukkan katalog mereka.
+Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation POS UMKM Rifaldo. Galeri ini menunjukkan tampilan aplikasi dengan data simulasi (*dummy data*) agar setiap UMKM dapat melihat gambaran operasional toko yang lengkap dan profesional.
 
 ![Galeri seluruh menu POS UMKM Rifaldo](docs/screenshots/menu-gallery.png)
 

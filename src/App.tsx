@@ -615,7 +615,7 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
           <div className="settings-row">
             <div className="settings-row-info">
               <span className="settings-row-label">Versi Aplikasi</span>
-              <span className="settings-row-value">1.5.0</span>
+              <span className="settings-row-value">2.0.0</span>
             </div>
           </div>
           <div className="settings-row">
