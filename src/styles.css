@@ -267,3 +267,13 @@ input:checked + .slider:before { transform: translateX(20px); }
 .dashboard-note strong { color: #226846; font-size: 12px; }
 .dashboard-note small { margin-top: 3px; overflow: hidden; color: #698172; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 680px) { .dashboard-header { align-items: flex-start; flex-direction: column; gap: 12px; padding-bottom: 15px; } .dashboard-primary-action { width: 100%; } .dashboard-note { align-items: flex-start; } .dashboard-note .text-button { align-self: center; white-space: nowrap; } }
+
+/* Refined bottom navigation icons */
+.bottom-nav button { transition: color .16s ease, transform .16s ease; }
+.bottom-nav button:hover { color: var(--primary-dark); }
+.bottom-nav button:active { transform: translateY(1px); }
+.bottom-nav button span.nav-icon { display: grid; place-items: center; width: 32px; height: 29px; margin: 0 auto 2px; border-radius: 10px; font-size: 0; }
+.bottom-nav button span.nav-icon svg { display: block; width: 19px; height: 19px; }
+.bottom-nav button.active span.nav-icon { color: white; background: var(--primary); box-shadow: 0 5px 12px rgba(234,106,45,.22); }
+.bottom-nav button.active span.nav-icon svg { stroke-width: 2.1; }
+@media (max-width: 600px) { .bottom-nav button span.nav-icon { width: 29px; height: 26px; } .bottom-nav button span.nav-icon svg { width: 18px; height: 18px; } }
