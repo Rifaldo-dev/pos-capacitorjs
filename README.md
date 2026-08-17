@@ -1,9 +1,9 @@
-# POS UMKM Rifaldo
+# Ini POS
 
-POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
+Ini POS adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [POS UMKM Rifaldo v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0)  
+> **Release publik:** [Ini POS v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0)  
 > **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)
 
 ## Tampilan aplikasi
@@ -12,19 +12,19 @@ POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, t
 
 Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.2.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
 
-![Dashboard POS UMKM Rifaldo](docs/screenshots/dashboard.png)
+![Dashboard Ini POS](docs/screenshots/dashboard.png)
 
 ### Tampilan Mobile
 
 Layout mobile dirancang untuk kenyamanan kasir harian dengan bilah navigasi bawah (*bottom navigation*) yang mencakup **Beranda, Kasir, Produk, Stok, Transaksi, dan Pengaturan**.
 
-![Dashboard mobile POS UMKM Rifaldo](docs/screenshots/dashboard-mobile.png)
+![Dashboard mobile Ini POS](docs/screenshots/dashboard-mobile.png)
 
 ## Galeri semua menu
 
-Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation POS UMKM Rifaldo. Galeri ini menunjukkan tampilan aplikasi dengan data simulasi (*dummy data*) agar setiap UMKM dapat melihat gambaran operasional toko yang lengkap dan profesional.
+Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation Ini POS. Galeri ini menunjukkan tampilan aplikasi dengan data simulasi (*dummy data*) agar setiap UMKM dapat melihat gambaran operasional toko yang lengkap dan profesional.
 
-![Galeri seluruh menu POS UMKM Rifaldo](docs/screenshots/menu-gallery.png)
+![Galeri seluruh menu Ini POS](docs/screenshots/menu-gallery.png)
 
 ### Beranda
 

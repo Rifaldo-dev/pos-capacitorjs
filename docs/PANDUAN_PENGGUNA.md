@@ -1,6 +1,6 @@
-# Panduan Pengguna POS UMKM Rifaldo
+# Panduan Pengguna Ini POS
 
-Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **POS UMKM Rifaldo** (versi `2.3.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
+Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **Ini POS** (versi `2.3.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
 
 > **Package Android:** `pos.rifaldo`  
 > **Repository GitHub:** [Rifaldo-dev/pos-capacitorjs](https://github.com/Rifaldo-dev/pos-capacitorjs)
@@ -9,7 +9,7 @@ Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko 
 
 ## 1. Pengenalan & Arsitektur Offline
 
-POS UMKM Rifaldo tidak memerlukan sambungan internet, server awan, atau langganan bulanan. Seluruh data transaksi, produk, stok, dan pengaturan toko disimpan langsung di dalam memori internal perangkat Android Anda menggunakan teknologi SQLite native. Anda tetap dapat melayani pelanggan, mencetak struk, dan memindai barcode meskipun perangkat berada dalam keadaan **Airplane Mode** (mode pesawat) atau tanpa paket data.
+Ini POS tidak memerlukan sambungan internet, server awan, atau langganan bulanan. Seluruh data transaksi, produk, stok, dan pengaturan toko disimpan langsung di dalam memori internal perangkat Android Anda menggunakan teknologi SQLite native. Anda tetap dapat melayani pelanggan, mencetak struk, dan memindai barcode meskipun perangkat berada dalam keadaan **Airplane Mode** (mode pesawat) atau tanpa paket data.
 
 ---
 

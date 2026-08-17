@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'pos.rifaldo',
-  appName: 'POS UMKM Rifaldo',
+  appName: 'Ini POS',
   webDir: 'dist'
 };
 
