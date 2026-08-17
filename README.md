@@ -74,7 +74,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
 | Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (`.xlsx`) atau PDF profesional secara offline. |
-| Cadangan & Pemulihan | Backup zero-config mandiri melalui Menu Berbagi Android (Share Sheet) langsung ke Google Drive, WhatsApp, email, atau penyimpanan perangkat. |},{all:false,find:
+| Cadangan & Pemulihan | Pencadangan otomatis ke folder lokal **Documents/IniPOS_Backups** di perangkat tanpa memerlukan Google Drive atau Client ID. |},{all:false,find:},{all:false,find:
 | Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
 | Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
 | Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |
@@ -99,11 +99,11 @@ Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar hist
 
 Struk dapat dicetak langsung ke **Printer Bluetooth Thermal** (58mm/80mm) menggunakan perintah ESC/POS native, atau melalui dialog print Android/browser dan Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
 
-### Cadangan & Pemulihan (Zero-Config Cloud Backup)
-
-Fitur pencadangan data mandiri tersedia pada menu **Pengaturan → Cadangan & Pemulihan**. Aplikasi ini dirancang 100% mandiri tanpa memerlukan konfigurasi *Client ID*, akun pengembang, atau server pihak ketiga. 
-
-Saat Anda menekan tombol **Bagikan Cadangan**, aplikasi mengekspor data toko dalam format JSON dan membuka menu Berbagi bawaan Android (*Android Share Sheet*). Anda dapat langsung memilih **"Simpan ke Drive"** (untuk menyimpan ke Google Drive pribadi Anda), **"WhatsApp"**, **"Gmail"**, atau aplikasi penyimpanan cloud lainnya. Untuk memulihkan data (*restore*), gunakan menu **Kelola Backup** untuk memilih file JSON yang sebelumnya telah disimpan.
+### Cadangan & Pemulihan (Folder Lokal Perangkat)
+	
+	Fitur pencadangan data mandiri tersedia pada menu **Pengaturan → Cadangan & Pemulihan**. Aplikasi ini dirancang 100% mandiri tanpa memerlukan konfigurasi *Client ID*, akun pengembang, atau server pihak ketiga. 
+	
+	Setiap kali Anda menekan tombol **Simpan ke folder lokal**, aplikasi secara otomatis membuat folder **Documents/IniPOS_Backups** di memori internal HP Anda dan menyimpan file JSON cadangan di sana. Anda dapat melihat daftar file backup yang tersedia beserta ukurannya, lalu memulihkannya kapan saja dengan satu sentuhan. Folder ini dapat diakses langsung menggunakan aplikasi File Manager bawaan Android.
 
 ## Menjalankan dari Source Code
 

@@ -11,6 +11,8 @@ import './styles.css'
 
 const paymentMethods: PaymentMethod[] = ['Tunai', 'QRIS', 'Transfer', 'Debit', 'Kredit', 'E-wallet', 'Lainnya']
 type ScannerNotice = { status: 'idle' | 'opening' | 'success' | 'not-found' | 'duplicate' | 'cancelled' | 'error'; message: string; code?: string; format?: string }
+const LOCAL_BACKUP_FOLDER = 'IniPOS_Backups'
+type LocalBackupFile = { name: string; size: number; mtime: number }
 
 function scannerFeedback() {
   try { if (typeof navigator.vibrate === 'function') navigator.vibrate([70, 45, 70]) } catch { /* vibration is optional */ }
@@ -85,6 +87,8 @@ function App() {
   const lastScanRef = useRef<{ code: string; at: number } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
   const [printerBusy, setPrinterBusy] = useState(false)
+  const [localBackups, setLocalBackups] = useState<LocalBackupFile[]>([])
+  const [backupBusy, setBackupBusy] = useState(false)
 
   useEffect(() => { initializeStore().then(setState) }, [])
   useEffect(() => {
@@ -319,26 +323,59 @@ function App() {
     await save({ ...state, products, transactions: state.transactions.map((item) => item.id === transaction.id ? { ...item, status: 'voided' as const } : item), stockMovements: [...movements, ...state.stockMovements] }, 'Transaksi dibatalkan dan stok dikembalikan'); setSelectedTransaction(null)
   }
 
-  const downloadBackup = () => {
-    const blob = new Blob([JSON.stringify(createBackup(state), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ini-pos-backup-${todayKey()}.json`; anchor.click(); URL.revokeObjectURL(url)
-    save({ ...state, settings: { ...state.settings, lastBackupAt: timestamp() } }, 'Backup berhasil dibuat')
+  const refreshLocalBackups = async () => {
+    try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem')
+      const result = await Filesystem.readdir({ path: LOCAL_BACKUP_FOLDER, directory: Directory.Documents })
+      const files = result.files
+        .filter((file) => file.type === 'file' && file.name.toLowerCase().endsWith('.json'))
+        .map((file) => ({ name: file.name, size: file.size, mtime: file.mtime }))
+        .sort((a, b) => b.mtime - a.mtime)
+      setLocalBackups(files)
+    } catch {
+      setLocalBackups([])
+    }
   }
 
-  const shareBackup = async () => {
-    const fileName = `ini-pos-backup-${todayKey()}.json`
+  const openBackup = async () => {
+    setShowBackup(true)
+    await refreshLocalBackups()
+  }
+
+  const saveBackupToLocalFolder = async () => {
+    if (backupBusy) return
+    setBackupBusy(true)
+    const fileName = `ini-pos-backup-${todayKey()}-${Date.now()}.json`
     const fileContent = JSON.stringify(createBackup(state), null, 2)
     const backupTime = timestamp()
     try {
       const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem')
-      const { Share } = await import('@capacitor/share')
-      const path = `ini-pos-backups/${fileName}`
-      await Filesystem.writeFile({ path, directory: Directory.Cache, data: fileContent, encoding: Encoding.UTF8, recursive: true })
-      const { uri } = await Filesystem.getUri({ path, directory: Directory.Cache })
-      await Share.share({ title: 'Cadangan data Ini POS', text: 'Pilih Simpan ke Drive atau aplikasi lain untuk menyimpan cadangan Anda.', files: [uri], dialogTitle: 'Simpan cadangan Ini POS' })
-      await save({ ...state, settings: { ...state.settings, lastBackupAt: backupTime } }, 'Menu berbagi cadangan dibuka')
-    } catch {
-      downloadBackup()
-      setToast('Cadangan disiapkan sebagai file. Pilih Simpan ke Drive atau aplikasi lain.')
+      await Filesystem.writeFile({ path: `${LOCAL_BACKUP_FOLDER}/${fileName}`, directory: Directory.Documents, data: fileContent, encoding: Encoding.UTF8, recursive: true })
+      await save({ ...state, settings: { ...state.settings, lastBackupAt: backupTime } }, `Backup tersimpan di Documents/${LOCAL_BACKUP_FOLDER}`)
+      await refreshLocalBackups()
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Backup lokal tidak dapat disimpan.')
+    } finally {
+      setBackupBusy(false)
+    }
+  }
+
+  const restoreLocalBackup = async (fileName: string) => {
+    if (backupBusy) return
+    setBackupBusy(true)
+    try {
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem')
+      const result = await Filesystem.readFile({ path: `${LOCAL_BACKUP_FOLDER}/${fileName}`, directory: Directory.Documents, encoding: Encoding.UTF8 })
+      const content = typeof result.data === 'string' ? result.data : await result.data.text()
+      const backup = parseBackup(content)
+      if (window.confirm(`Pulihkan backup ${formatDate(backup.createdAt)}? Data saat ini akan diganti.`)) {
+        await save(backup.data, 'Data berhasil dipulihkan dari backup lokal')
+        setShowBackup(false)
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Backup lokal tidak dapat dibaca.')
+    } finally {
+      setBackupBusy(false)
     }
   }
 
@@ -378,7 +415,7 @@ function App() {
       {page === 'produk' && <Products state={state} products={catalogProducts} search={search} setSearch={setSearch} onAdd={() => openAddProduct()} onScanAdd={scanForNewProduct} scannerBusy={scannerBusy} onEdit={setEditingProduct} onAdjust={setStockProduct} onToggleActive={toggleProductActive} onDelete={deleteProduct} />}
       {page === 'transaksi' && <Transactions state={state} onSelect={setSelectedTransaction} />}
       {page === 'stok' && <Inventory state={state} lowStock={lowStock} onEdit={setEditingProduct} onAdjust={setStockProduct} />}
-      {page === 'lainnya' && <SettingsPage state={state} onSave={save} onBackup={() => setShowBackup(true)} onSeed={() => setShowSeedConfirm(true)} />}
+      {page === 'lainnya' && <SettingsPage state={state} onSave={save} onBackup={openBackup} onSeed={() => setShowSeedConfirm(true)} />}
     </main>
     <BottomNav page={page} onNavigate={navigate} />
     {toast && <div className="toast"><span>✓</span>{toast}</div>}
@@ -386,7 +423,7 @@ function App() {
     {stockProduct && <StockAdjustModal product={stockProduct} onClose={() => setStockProduct(null)} onSubmit={adjustStock} />}
     {showPayment && <PaymentModal state={state} cart={cart} onClose={() => setShowPayment(false)} onSubmit={completeTransaction} />}
     {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onBluetoothPrint={() => printBluetoothReceipt(selectedTransaction)} onShare={() => shareReceipt(selectedTransaction)} />}
-    {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onShare={shareBackup} onImport={() => importRef.current?.click()} />}
+    {showBackup && <BackupModal state={state} backups={localBackups} busy={backupBusy} onClose={() => setShowBackup(false)} onSave={saveBackupToLocalFolder} onRestore={restoreLocalBackup} onImport={() => importRef.current?.click()} />}
     <input ref={importRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importBackup} />
     {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur Ini POS." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
   </div>
@@ -642,11 +679,11 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
           <h2>Cadangan & Pemulihan</h2>
         </div>
         <div className="settings-subpage-content">
-          <div className="cloud-intro"><div className="cloud-icon">⇄</div><div><strong>Simpan cadangan ke mana saja</strong><p>Ini POS tetap berjalan offline. Cadangan dibuat di perangkat, lalu Anda dapat menyimpannya ke Google Drive, WhatsApp, email, atau aplikasi lain melalui menu berbagi Android.</p></div></div>
-          <div className="info-box"><strong>Tidak perlu Client ID.</strong><br />Aplikasi tidak terhubung ke server pengembang atau akun Google milik pembuat aplikasi. Anda memilih sendiri tempat penyimpanan cadangan.</div>
-          <div className="cloud-actions"><button className="button primary" onClick={onBackup}>Bagikan Cadangan</button><button className="button secondary" onClick={() => setActiveSubPage('main')}>Kembali</button></div>
+          <div className="cloud-intro"><div className="cloud-icon">▣</div><div><strong>Backup tersimpan di perangkat</strong><p>Ini POS membuat folder <strong>Documents/IniPOS_Backups</strong> secara otomatis. Semua cadangan tersimpan offline di HP Anda tanpa Google Drive atau Client ID.</p></div></div>
+          <div className="info-box"><strong>Data tetap milik Anda.</strong><br />File JSON dapat ditemukan melalui File Manager Android pada folder <strong>Documents/IniPOS_Backups</strong>. Salin folder ini ke perangkat lain jika ingin menyimpan salinan tambahan.</div>
+          <div className="cloud-actions"><button className="button primary" onClick={onBackup}>Buka Kelola Backup</button><button className="button secondary" onClick={() => setActiveSubPage('main')}>Kembali</button></div>
           {state.settings.lastBackupAt && <p className="settings-form-hint">Cadangan terakhir: {formatDate(state.settings.lastBackupAt)}</p>}
-          <div className="settings-form-group"><label>Pemulihan data</label><p className="settings-form-hint">Buka menu Kelola Backup untuk memilih file JSON dari Google Drive atau penyimpanan perangkat, lalu pulihkan dengan konfirmasi.</p><button className="button secondary" onClick={onBackup}>Buka Kelola Backup</button></div>
+          <div className="settings-form-group"><label>Pemulihan data</label><p className="settings-form-hint">Pilih salah satu file JSON yang tersimpan di folder lokal, lalu pulihkan dengan konfirmasi.</p><button className="button secondary" onClick={onBackup}>Lihat file backup</button></div>
         </div>
       </div>
     )
@@ -781,7 +818,7 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
           <button className="settings-row" onClick={() => setActiveSubPage('backup')}>
             <div className="settings-row-info">
               <span className="settings-row-label">Cadangan & Pemulihan</span>
-              <span className="settings-row-value">{localSettings.lastBackupAt ? `Terakhir: ${formatDate(localSettings.lastBackupAt)}` : 'Bagikan ke Drive atau aplikasi lain'}</span>
+              <span className="settings-row-value">{localSettings.lastBackupAt ? `Terakhir: ${formatDate(localSettings.lastBackupAt)}` : 'Tersimpan di Documents/IniPOS_Backups'}</span>
             </div>
             <span className="settings-row-chevron">›</span>
           </button>
@@ -893,7 +930,16 @@ function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onBlue
   </Modal>
 }
 
-function BackupModal({ state, onClose, onDownload, onShare, onImport }: { state: PosState; onClose: () => void; onDownload: () => void; onShare: () => void; onImport: () => void }) { return <Modal title="Kelola Cadangan Data" onClose={onClose}><div className="backup-card"><div className="backup-icon">⇄</div><div><h3>Data Anda tersimpan lokal</h3><p>Cadangan mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div><div className="backup-actions"><button className="button primary" onClick={onShare}>↗ Bagikan ke Drive / aplikasi lain</button><button className="button secondary" onClick={onDownload}>↓ Unduh Cadangan JSON</button><button className="button secondary" onClick={onImport}>↑ Impor Cadangan</button></div><div className="info-box">Pilih “Simpan ke Drive” pada menu berbagi Android untuk menyimpan cadangan ke akun Google Anda. Pemulihan dilakukan dengan memilih file JSON dari penyimpanan perangkat.</div></Modal> }
+function BackupModal({ state, backups, busy, onClose, onSave, onRestore, onImport }: { state: PosState; backups: LocalBackupFile[]; busy: boolean; onClose: () => void; onSave: () => void; onRestore: (fileName: string) => void; onImport: () => void }) {
+  const formatBackupTime = (mtime: number) => mtime ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(mtime)) : 'Waktu tidak tersedia'
+  const formatBackupSize = (size: number) => size < 1024 ? `${size} B` : `${(size / 1024).toFixed(1)} KB`
+  return <Modal title="Kelola Cadangan Data" onClose={onClose}>
+    <div className="backup-card"><div className="backup-icon">▣</div><div><h3>Backup lokal perangkat</h3><p>Cadangan mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div>
+    <div className="backup-actions"><button className="button primary" onClick={onSave} disabled={busy}>↓ {busy ? 'Menyimpan...' : 'Simpan ke folder lokal'}</button><button className="button secondary" onClick={onImport} disabled={busy}>↑ Pilih file JSON</button></div>
+    <div className="info-box">Folder backup: <strong>Documents/IniPOS_Backups</strong>. File tersimpan langsung di HP dan tidak dikirim ke Google Drive atau server mana pun.</div>
+    <div className="settings-form-group"><label>Backup yang tersedia di perangkat</label>{backups.length === 0 ? <p className="settings-form-hint">Belum ada file backup. Tekan “Simpan ke folder lokal” untuk membuat backup pertama.</p> : <div className="cloud-backup-list">{backups.map((backup) => <div className="cloud-backup-row" key={backup.name}><div><strong>{backup.name}</strong><small>{formatBackupTime(backup.mtime)} · {formatBackupSize(backup.size)}</small></div><button className="button secondary" onClick={() => onRestore(backup.name)} disabled={busy}>Pulihkan</button></div>)}</div>}</div>
+  </Modal>
+}
 function ConfirmModal({ title, description, onClose, onConfirm }: { title: string; description: string; onClose: () => void; onConfirm: () => void }) { return <Modal title={title} onClose={onClose}><p className="confirm-copy">{description}</p><div className="modal-actions"><button className="button secondary" onClick={onClose}>Batal</button><button className="button primary" onClick={onConfirm}>Lanjutkan</button></div></Modal> }
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="modal"><div className="modal-header"><h2>{title}</h2><button className="close-button" onClick={onClose}>×</button></div>{children}</div></div> }
 function Empty({ title, description, action, onAction }: { title: string; description: string; action?: string; onAction?: () => void }) { return <div className="empty-state"><div className="empty-icon">□</div><strong>{title}</strong><p>{description}</p>{action && onAction && <button className="button secondary" onClick={onAction}>{action}</button>}</div> }
