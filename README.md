@@ -3,14 +3,14 @@
 POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [POS UMKM Rifaldo v1.7.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.7.0)  
+> **Release publik:** [POS UMKM Rifaldo v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0)  
 > **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)
 
 ## Tampilan aplikasi
 
 ### Tampilan Beranda (Desktop & Mobile)
 
-Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.0.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar.
+Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.2.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
 
 ![Dashboard POS UMKM Rifaldo](docs/screenshots/dashboard.png)
 
@@ -34,13 +34,13 @@ Ringkasan operasional toko: status offline, identitas toko, penjualan hari ini, 
 
 ### Kasir
 
-Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan banyak produk**, senter native, status scanner real-time, daftar produk, keranjang, ringkasan pajak, total, dan tombol pembayaran.
+Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan banyak produk**, senter native, status scanner real-time, daftar produk bergambar, keranjang, ringkasan pajak, total, dan tombol pembayaran. Dukungan gambar produk memudahkan identifikasi barang secara visual.
 
 ![Menu Kasir](docs/screenshots/menu-kasir.png)
 
 ### Produk
 
-Katalog produk dengan pencarian, SKU/barcode, kategori, harga beli/jual, stok, minimum stok, status aktif, dan aksi CRUD. Pengguna dapat menambah produk, mengedit detail produk, menonaktifkan atau mengaktifkan kembali produk, dan menghapus produk yang belum memiliki histori transaksi. Alur **Scan barcode** pada toolbar Produk membuka form tambah produk secara otomatis dengan barcode hasil scan sudah terisi; pengguna tinggal melengkapi nama, harga, stok, dan informasi lain sebelum menyimpan. Barcode juga tetap dapat diisi dari kamera melalui form produk.
+Katalog produk dengan pencarian, foto produk, SKU/barcode, kategori, harga beli/jual, stok, minimum stok, status aktif, dan aksi CRUD. Pengguna dapat menambah produk beserta fotonya, mengedit detail produk, menonaktifkan atau mengaktifkan kembali produk, dan menghapus produk yang belum memiliki histori transaksi. Alur **Scan barcode** pada toolbar Produk membuka form tambah produk secara otomatis dengan barcode hasil scan sudah terisi. Barcode juga tetap dapat diisi dari kamera melalui form produk.
 
 ![Menu Produk](docs/screenshots/menu-produk.png)
 
@@ -58,7 +58,7 @@ Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, 
 
 ### Pengaturan
 
-Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, cetak otomatis, backup/restore, dan data demo.
+Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore, dan data demo. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
 
 ![Menu Pengaturan](docs/screenshots/menu-pengaturan.png)
 
@@ -66,14 +66,15 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 
 | Area | Kemampuan |
 |---|---|
-| Dashboard | Ringkasan usaha yang profesional dengan status operasional, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan akses cepat. |
-| Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
-| Scan kamera | Scanner native Android melalui Capacitor Plugin/Bridge dengan CameraX dan Google ML Kit bundled; berjalan 100% offline, mendukung senter, multi-scan di Kasir, EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF, serta QR Code, lalu mencari produk lokal atau membuka form barcode-first. |
-| Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. Aksi produk diringkas dalam menu tiga titik (⋮). |
-| Stok | Tambah, kurangi, atau set stok; catatan alasan; validasi agar stok tidak negatif; serta riwayat stock movement dengan stok sebelum dan sesudah. |
-| Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk, dan bagikan struk. |
-| Branding UMKM | Ubah nama toko, upload logo, alamat, nomor telepon, footer struk, pajak, serta pilihan cetak otomatis. |
-| Data offline | SQLite lokal pada Android, localStorage fallback pada browser preview, backup/restore JSON berversi, dan seed data demo. |
+| Dashboard | Ringkasan usaha profesional dengan status operasional, grafik penjualan, laba kotor, produk terlaris bergambar, stok menipis, dan akses cepat. |
+| Kasir | Pencarian produk bergambar (nama/SKU/barcode), keranjang belanja, diskon, pajak, pembayaran tunai/non-tunai, kembalian, dan invoice otomatis. |
+| Scan kamera | Scanner native Android (CameraX + ML Kit) 100% offline, mendukung senter, multi-scan, berbagai format barcode/QR, dan alur pendaftaran produk otomatis. |
+| Produk | CRUD katalog lengkap dengan **Foto Produk**, SKU/barcode, kategori, harga beli/jual, stok, dan menu aksi ringkas (⋮). |
+| Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
+| Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, dan **Cetak Bluetooth Thermal**. |
+| Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
+| Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
+| Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |
 
 ## Setup toko untuk setiap UMKM
 
@@ -93,7 +94,7 @@ Untuk mengelola katalog, buka **Produk**. Pada kolom **Aksi**, tekan menu tiga t
 
 Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar histori invoice tetap aman. Gunakan **Nonaktifkan** supaya produk tidak muncul lagi di Kasir; produk tersebut dapat diaktifkan kembali kapan saja.
 
-Struk dapat dicetak melalui dialog print Android/browser atau dibagikan melalui Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
+Struk dapat dicetak langsung ke **Printer Bluetooth Thermal** (58mm/80mm) menggunakan perintah ESC/POS native, atau melalui dialog print Android/browser dan Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
 
 ## Menjalankan dari source code
 
@@ -195,12 +196,21 @@ Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian ya
 
 ## GitHub Release
 
-Rilis publik terbaru tersedia pada [v1.7.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.7.0). Versi ini menghapus scanner HTML/JavaScript dan menggantinya dengan plugin Android native yang menggunakan CameraX serta dependency `com.google.mlkit:barcode-scanning:17.3.0` bundled. Model barcode berada di dalam APK sehingga pemindaian tidak membutuhkan download model saat runtime.
+Rilis publik terbaru tersedia pada [v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0). Versi ini membawa peningkatan visual besar dengan ikon modern, dashboard profesional, dukungan foto produk, serta fitur pencetakan langsung ke printer Bluetooth thermal.
 
 | Asset | Keterangan |
 |---|---|
-| `pos-rifaldo-scanner-multiscan-debug.apk` | APK debug v1.7.0 dengan scanner kamera native Android, senter, dan multi-scan Kasir. |
-| `pos-rifaldo-scanner-multiscan-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi APK multi-scan native. |
+| `pos-rifaldo-v2.2.0-debug.apk` | APK debug v2.2.0 dengan scanner native, foto produk, dan printer Bluetooth. |
+| `pos-rifaldo-v2.2.0-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi APK v2.2.0. |
+
+### Catatan rilis v2.2.0
+
+Versi ini merupakan pencapaian besar dalam hal fungsionalitas dan estetika:
+- **Printer Bluetooth Thermal**: Dukungan penuh untuk printer thermal 58mm/80mm via Bluetooth Classic dengan format ESC/POS yang presisi.
+- **Foto Produk**: Pengguna dapat menambahkan foto pada setiap produk untuk katalog yang lebih profesional.
+- **UI Modern (v2.0.0+)**: Ikon SVG profesional menggantikan emoji, dashboard bisnis yang didesain ulang, dan menu aksi ringkas.
+- **Native Scanner**: Tetap menggunakan CameraX + ML Kit 100% offline dengan fitur senter dan multi-scan yang stabil.
+- **Data Demo**: Pemuatan data contoh yang kaya untuk mempermudah pengguna baru memahami alur aplikasi.
 
 ### Catatan rilis v1.7.0
 
@@ -208,4 +218,4 @@ Scanner kini mengikuti alur **Klik Scan banyak produk → Native Camera Scanner 
 
 ## Keterbatasan saat ini
 
-Versi ini belum menyediakan integrasi langsung dengan printer Bluetooth thermal tertentu, modul supplier/customer/purchasing/expenses yang lengkap, laporan custom range, CSV import/export, PIN app lock, atau dark mode native. Fitur cetak menggunakan dialog print Android/browser dan Android Share. Integrasi printer thermal langsung memerlukan plugin printer yang sesuai serta pengujian pada model perangkat fisik yang digunakan oleh UMKM.
+Versi ini belum menyediakan modul supplier/customer/purchasing/expenses yang lengkap, laporan custom range yang mendalam, ekspor data ke Excel/CSV, PIN app lock, atau dark mode native. Integrasi printer Bluetooth saat ini mendukung protokol Bluetooth Classic SPP yang umum digunakan oleh printer thermal thermal 58mm/80mm; printer berbasis BLE murni mungkin memerlukan pembaruan plugin di masa mendatang.

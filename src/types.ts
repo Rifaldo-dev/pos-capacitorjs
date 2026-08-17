@@ -89,6 +89,10 @@ export interface StoreSettings {
   theme: 'light' | 'dark' | 'system'
   receiptFooter: string
   autoPrintReceipt: boolean
+  bluetoothPrinterAddress?: string
+  bluetoothPrinterName?: string
+  bluetoothPaperWidth?: 58 | 80
+  autoPrintBluetooth?: boolean
   lastBackupAt?: string
 }
 

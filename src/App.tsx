@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { createBackup, initializeStore, newId, parseBackup, persistState, seedDemoData, timestamp } from './storage'
 import { NativeBarcodeScanner } from './nativeScanner'
+import { connectBluetoothPrinter, enableBluetooth, isBluetoothEnabled, listPairedPrinters, type BluetoothDevice } from './bluetoothPrinter'
+import { printTransactionBluetooth } from './thermalPrinter'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
 import type { CartItem, Page, PaymentMethod, PosState, Product, StoreSettings, Transaction } from './types'
 import './styles.css'
@@ -81,6 +83,7 @@ function App() {
   const [scannerNotice, setScannerNotice] = useState<ScannerNotice>({ status: 'idle', message: 'Siap memindai QR atau barcode produk.' })
   const lastScanRef = useRef<{ code: string; at: number } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
+  const [printerBusy, setPrinterBusy] = useState(false)
 
   useEffect(() => { initializeStore().then(setState) }, [])
   useEffect(() => {
@@ -252,6 +255,7 @@ function App() {
     await save({ ...state, products, transactions: [transaction, ...state.transactions], stockMovements }, 'Transaksi berhasil disimpan')
     setCart([]); setShowPayment(false); setSelectedTransaction(transaction); setPage('transaksi')
     if (state.settings.autoPrintReceipt) window.setTimeout(() => window.print(), 350)
+    if (state.settings.autoPrintBluetooth && state.settings.bluetoothPrinterAddress) window.setTimeout(() => { void printBluetoothReceipt(transaction) }, 450)
   }
 
   const saveProduct = async (event: FormEvent<HTMLFormElement>) => {
@@ -325,6 +329,14 @@ function App() {
     reader.readAsText(file); event.target.value = ''
   }
 
+  const printBluetoothReceipt = async (transaction: Transaction) => {
+    if (printerBusy) return
+    setPrinterBusy(true)
+    try { await printTransactionBluetooth(state, transaction); setToast(`Struk ${transaction.invoiceNumber} dikirim ke printer Bluetooth.`) }
+    catch (error) { setToast(error instanceof Error ? error.message : 'Struk gagal dicetak melalui Bluetooth.') }
+    finally { setPrinterBusy(false) }
+  }
+
   const shareReceipt = async (transaction: Transaction) => {
     const text = makeReceiptText(state, transaction)
     try {
@@ -353,7 +365,7 @@ function App() {
     {(showProductForm || editingProduct) && <ProductModal key={`${editingProduct?.id ?? 'new'}-${prefilledBarcode}`} state={state} product={editingProduct} prefilledBarcode={prefilledBarcode} onClose={() => { setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode(''); setPendingProductBarcodes([]) }} onSubmit={saveProduct} onScan={scanProductCode} />}
     {stockProduct && <StockAdjustModal product={stockProduct} onClose={() => setStockProduct(null)} onSubmit={adjustStock} />}
     {showPayment && <PaymentModal state={state} cart={cart} onClose={() => setShowPayment(false)} onSubmit={completeTransaction} />}
-    {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onShare={() => shareReceipt(selectedTransaction)} />}
+    {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onBluetoothPrint={() => printBluetoothReceipt(selectedTransaction)} onShare={() => shareReceipt(selectedTransaction)} />}
     {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onImport={() => importRef.current?.click()} />}
     <input ref={importRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importBackup} />
     {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur POS UMKM." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
@@ -387,12 +399,15 @@ function Products({ state, products, search, setSearch, onAdd, onScanAdd, scanne
 function Transactions({ state, onSelect }: { state: PosState; onSelect: (transaction: Transaction) => void }) { return <section className="page-body"><div className="toolbar"><div><h3 className="toolbar-title">Semua transaksi</h3><p className="muted">Riwayat tersimpan di perangkat ini</p></div><span className="filter-chip">Tap transaksi untuk detail</span></div><div className="panel table-panel"><div className="table-scroll"><table><thead><tr><th>Invoice</th><th>Waktu</th><th>Item</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody>{state.transactions.map((transaction) => <tr className="clickable" key={transaction.id} onClick={() => onSelect(transaction)}><td><strong className="mono">{transaction.invoiceNumber}</strong></td><td>{formatDate(transaction.createdAt)}</td><td>{transaction.items.reduce((sum, item) => sum + item.quantity, 0)} item</td><td><span className="category-chip">{transaction.paymentMethod}</span></td><td><strong>{formatRupiah(transaction.total)}</strong></td><td><span className={`status-badge ${transaction.status}`}>{transaction.status === 'completed' ? 'Selesai' : transaction.status === 'voided' ? 'Void' : 'Refund'}</span></td></tr>)}</tbody></table>{state.transactions.length === 0 && <Empty title="Belum ada transaksi" description="Transaksi yang selesai akan muncul di sini." />}</div></div></section> }
 function Inventory({ state, lowStock, onEdit, onAdjust }: { state: PosState; lowStock: Product[]; onEdit: (product: Product) => void; onAdjust: (product: Product) => void }) { return <section className="page-body"><div className="metric-grid compact"><Metric label="Total produk" value={String(state.products.length)} detail="Dalam katalog" tone="blue" /><Metric label="Stok menipis" value={String(lowStock.length)} detail="Di bawah minimum" tone="orange" /><Metric label="Produk habis" value={String(state.products.filter((p) => p.stock === 0).length)} detail="Perlu restock" tone="purple" /></div><div className="panel table-panel"><div className="table-meta"><div><h3>Kontrol stok</h3><p>Tambah, kurangi, atau set stok baru. Semua perubahan tercatat.</p></div></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>Stok saat ini</th><th>Minimum</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{state.products.map((product) => <tr key={product.id}><td><div className="table-product"><ProductVisual product={product} className="product-avatar" /><strong>{product.name}</strong></div></td><td><strong>{product.stock} {product.unit}</strong></td><td>{product.minimumStock} {product.unit}</td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock === 0 ? 'Habis' : product.stock <= product.minimumStock ? 'Stok rendah' : 'Aman'}</span></td><td><div className="table-actions"><button className="small-button" onClick={() => onAdjust(product)}>Atur stok</button><button className="small-button" onClick={() => onEdit(product)}>Edit</button></div></td></tr>)}</tbody></table></div></div><div className="panel movement-panel"><div className="panel-heading"><div><h3>Riwayat perubahan stok</h3><p>Audit restock, penjualan, refund, dan penyesuaian.</p></div></div><div className="movement-list">{state.stockMovements.slice(0, 12).map((movement) => { const product = state.products.find((item) => item.id === movement.productId); return <div className="movement-row" key={movement.id}><span className={`movement-dot ${movement.type}`} /> <div><strong>{product?.name ?? 'Produk dihapus'}</strong><small>{movement.note} · {formatDate(movement.createdAt)}</small></div><b>{movement.type === 'sale' || movement.type === 'refund' ? `${movement.type === 'sale' ? '-' : '+'}${movement.quantity}` : `${movement.stockBefore} → ${movement.stockAfter}`}</b></div> })}{state.stockMovements.length === 0 && <Empty title="Belum ada perubahan stok" description="Aktivitas stok akan tercatat di sini." />}</div></div></section> }
 
-type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'appearance' | 'security' | 'data'
+type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'printer' | 'appearance' | 'security' | 'data'
 
 function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; onSave: (next: PosState, message?: string) => Promise<void>; onBackup: () => void; onSeed: () => void }) {
   const [activeSubPage, setActiveSubPage] = useState<SettingsSubPage>('main')
   const [localSettings, setLocalSettings] = useState(state.settings)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const [pairedPrinters, setPairedPrinters] = useState<BluetoothDevice[]>([])
+  const [printerLoading, setPrinterLoading] = useState(false)
+  const [printerMessage, setPrinterMessage] = useState('')
 
   const handleToggle = async (key: keyof StoreSettings, value: boolean) => {
     const nextSettings = { ...localSettings, [key]: value }
@@ -503,6 +518,42 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
     )
   }
 
+  if (activeSubPage === 'printer') {
+    const refreshPrinters = async () => {
+      setPrinterLoading(true); setPrinterMessage('')
+      try {
+        if (!(await isBluetoothEnabled())) { await enableBluetooth() }
+        const devices = await listPairedPrinters()
+        setPairedPrinters(devices)
+        setPrinterMessage(devices.length ? `${devices.length} perangkat Bluetooth ditemukan.` : 'Belum ada perangkat berpasangan. Pasangkan printer dari Pengaturan Bluetooth Android terlebih dahulu.')
+      } catch (error) { setPrinterMessage(error instanceof Error ? error.message : 'Perangkat Bluetooth tidak dapat dibaca.') }
+      finally { setPrinterLoading(false) }
+    }
+    const choosePrinter = async (device: BluetoothDevice) => {
+      setPrinterLoading(true); setPrinterMessage('Menghubungkan ke printer...')
+      try { await connectBluetoothPrinter(device.address); setLocalSettings({ ...localSettings, bluetoothPrinterAddress: device.address, bluetoothPrinterName: device.name || device.address }); setPrinterMessage(`Terhubung ke ${device.name || device.address}. Tekan Simpan untuk menyimpan pilihan.`) }
+      catch (error) { setPrinterMessage(error instanceof Error ? error.message : 'Printer tidak dapat dihubungkan.') }
+      finally { setPrinterLoading(false) }
+    }
+    return (
+      <div className="settings-subpage">
+        <div className="settings-header">
+          <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
+          <h2>Printer Bluetooth</h2>
+        </div>
+        <div className="settings-subpage-content">
+          <div className="printer-intro"><div className="printer-icon">▤</div><div><strong>Cetak langsung ke printer thermal</strong><p>Gunakan printer Bluetooth yang sudah dipasangkan di Android. Koneksi dan pencetakan berjalan tanpa internet.</p></div></div>
+          <button className="button secondary printer-scan-button" onClick={() => void refreshPrinters()} disabled={printerLoading}>{printerLoading ? 'Memproses...' : 'Cari perangkat berpasangan'}</button>
+          {printerMessage && <div className="printer-message">{printerMessage}</div>}
+          <div className="settings-form-group"><label>Printer terpilih</label><select value={localSettings.bluetoothPrinterAddress ?? ''} onChange={(event) => { const device = pairedPrinters.find((item) => item.address === event.target.value); if (device) void choosePrinter(device); else setLocalSettings({ ...localSettings, bluetoothPrinterAddress: '', bluetoothPrinterName: '', autoPrintBluetooth: false }) }}><option value="">Belum memilih printer</option>{pairedPrinters.map((device) => <option key={device.address} value={device.address}>{device.name || 'Printer tanpa nama'} · {device.address}</option>)}</select><p className="settings-form-hint">Jika daftar kosong, pasangkan printer melalui Pengaturan Bluetooth Android, lalu tekan tombol cari.</p></div>
+          <div className="settings-form-group"><label>Lebar kertas</label><select value={localSettings.bluetoothPaperWidth ?? 58} onChange={(event) => setLocalSettings({ ...localSettings, bluetoothPaperWidth: Number(event.target.value) as 58 | 80 })}><option value="58">58 mm · 32 karakter/baris</option><option value="80">80 mm · 48 karakter/baris</option></select></div>
+          <div className="settings-group" style={{ borderTop: 0 }}><div className="settings-switch-row"><div className="settings-switch-info"><span className="settings-switch-label">Cetak Bluetooth otomatis</span><span className="settings-switch-desc">Kirim struk ke printer setiap transaksi selesai.</span></div><label className="switch"><input type="checkbox" checked={Boolean(localSettings.autoPrintBluetooth)} disabled={!localSettings.bluetoothPrinterAddress} onChange={(event) => setLocalSettings({ ...localSettings, autoPrintBluetooth: event.target.checked })} /><span className="slider"></span></label></div></div>
+        </div>
+        <div className="settings-save-area"><button className="button primary" onClick={() => handleSaveSubPage('Pengaturan printer Bluetooth disimpan')}>Simpan</button></div>
+      </div>
+    )
+  }
+
   if (activeSubPage === 'receipt') {
     return (
       <div className="settings-subpage">
@@ -600,6 +651,13 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
       <div className="settings-section">
         <div className="settings-section-title">Struk & Pembayaran</div>
         <div className="settings-group">
+          <button className="settings-row" onClick={() => setActiveSubPage('printer')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Printer Bluetooth</span>
+              <span className="settings-row-value">{localSettings.bluetoothPrinterName || 'Belum terhubung'}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
           <button className="settings-row" onClick={() => setActiveSubPage('receipt')}>
             <div className="settings-row-info">
               <span className="settings-row-label">Informasi Struk</span>
@@ -645,7 +703,7 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
           <div className="settings-row">
             <div className="settings-row-info">
               <span className="settings-row-label">Versi Aplikasi</span>
-              <span className="settings-row-value">2.0.0</span>
+              <span className="settings-row-value">2.2.0</span>
             </div>
           </div>
           <div className="settings-row">
@@ -691,7 +749,7 @@ function ProductModal({ state, product, prefilledBarcode, onClose, onSubmit, onS
 }
 
 function PaymentModal({ state, cart, onClose, onSubmit }: { state: PosState; cart: CartItem[]; onClose: () => void; onSubmit: (method: PaymentMethod, paid: number, discount: number) => void }) { const [method, setMethod] = useState<PaymentMethod>('Tunai'); const [paid, setPaid] = useState(''); const [discount, setDiscount] = useState('0'); const totals = calculateCart(cart, state.settings.taxRate, Number(discount)); const paidValue = Number(paid) || 0; return <Modal title="Selesaikan pembayaran" onClose={onClose}><div className="payment-summary"><span>Total pembayaran</span><strong>{formatRupiah(totals.total)}</strong><small>{cart.reduce((sum, item) => sum + item.quantity, 0)} item · {method}</small></div><div className="payment-form"><label>Metode pembayaran<select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>{paymentMethods.map((item) => <option key={item}>{item}</option>)}</select></label><label>Diskon transaksi<input value={discount} type="number" min="0" onChange={(e) => setDiscount(e.target.value)} /></label>{method === 'Tunai' && <><label>Dibayar<input autoFocus value={paid} type="number" min={totals.total} inputMode="numeric" placeholder={String(totals.total)} onChange={(e) => setPaid(e.target.value)} /></label><div className="quick-pay"><button type="button" onClick={() => setPaid(String(totals.total))}>Uang pas</button><button type="button" onClick={() => setPaid(String(Math.ceil(totals.total / 50000) * 50000))}>Rp50.000</button><button type="button" onClick={() => setPaid(String(Math.ceil(totals.total / 100000) * 100000))}>Rp100.000</button></div><div className="change-row"><span>Kembalian</span><strong>{formatRupiah(calculateChange(totals.total, paidValue))}</strong></div></>}{method !== 'Tunai' && <div className="info-box">Pembayaran non-tunai dicatat sebagai metode pembayaran. Pastikan pembayaran telah diterima sebelum menyelesaikan transaksi.</div>}</div><div className="modal-actions"><button className="button secondary" onClick={onClose}>Kembali</button><button className="button primary" disabled={method === 'Tunai' && paidValue < totals.total} onClick={() => onSubmit(method, method === 'Tunai' ? paidValue : totals.total, Number(discount))}>Konfirmasi bayar</button></div></Modal> }
-function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onShare }: { state: PosState; transaction: Transaction; onClose: () => void; onVoid: () => void; onPrint: () => void; onShare: () => void }) {
+function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onBluetoothPrint, onShare }: { state: PosState; transaction: Transaction; onClose: () => void; onVoid: () => void; onPrint: () => void; onBluetoothPrint: () => void; onShare: () => void }) {
   return <Modal title="Struk transaksi" onClose={onClose}>
     <div className="receipt receipt-sheet">
       <div className="receipt-branding">
@@ -725,7 +783,7 @@ function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onShar
       </div>
       <div className="receipt-footer">{state.settings.receiptFooter}</div>
     </div>
-    <div className="receipt-actions"><button className="button primary" onClick={onPrint}>Cetak struk</button><button className="button secondary" onClick={onShare}>Bagikan struk</button></div>
+    <div className="receipt-actions"><button className="button primary" onClick={onBluetoothPrint}>Bluetooth</button><button className="button secondary" onClick={onPrint}>Cetak struk</button><button className="button secondary" onClick={onShare}>Bagikan</button></div>
     <div className="modal-actions">{transaction.status === 'completed' && <button className="button danger-button" onClick={onVoid}>Void transaksi</button>}<button className="button ghost" onClick={onClose}>Tutup</button></div>
   </Modal>
 }

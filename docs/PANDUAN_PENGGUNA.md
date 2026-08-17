@@ -1,6 +1,6 @@
 # Panduan Pengguna POS UMKM Rifaldo
 
-Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **POS UMKM Rifaldo** (versi `1.7.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
+Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **POS UMKM Rifaldo** (versi `2.2.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
 
 > **Package Android:** `pos.rifaldo`  
 > **Repository GitHub:** [Rifaldo-dev/pos-capacitorjs](https://github.com/Rifaldo-dev/pos-capacitorjs)
@@ -29,6 +29,7 @@ Sebelum mulai melayani transaksi, sesuaikan identitas toko agar struk dan lapora
 2. Masukkan nama toko, alamat lengkap, dan nomor telepon yang aktif.
 3. Atur persentase pajak (jika ada) dan teks catatan penutup pada struk (Footer).
 4. Unggah logo toko dalam format gambar standar (PNG/JPG). Logo ini akan tampil di bagian atas struk transaksi dan laporan.
+5. **Printer Bluetooth**: Pilih menu **Printer Bluetooth** untuk menghubungkan aplikasi dengan printer thermal thermal Bluetooth Anda. Tekan **Cari perangkat berpasangan**, pilih printer dari daftar, tentukan lebar kertas (58mm atau 80mm), dan aktifkan **Cetak Bluetooth otomatis** jika ingin struk tercetak langsung setiap transaksi selesai. Pastikan printer sudah dipasangkan (*paired*) melalui pengaturan Bluetooth Android terlebih dahulu.
 
 ---
 
@@ -36,7 +37,7 @@ Sebelum mulai melayani transaksi, sesuaikan identitas toko agar struk dan lapora
 
 Pengelolaan produk dirancang agar pemilik toko dapat mendata barang dengan cepat:
 
-- **Tambah Produk Manual**: Masukkan nama, SKU, kategori, harga beli, harga jual, stok awal, dan satuan (misal: pcs, kg, botol).
+- **Tambah Produk Manual**: Masukkan nama, SKU, kategori, harga beli, harga jual, stok awal, dan satuan (misal: pcs, kg, botol). Anda juga dapat mengunggah **Foto Produk** agar katalog terlihat lebih profesional dan memudahkan kasir mengenali barang secara visual. Foto akan dikompresi otomatis untuk menghemat ruang penyimpanan perangkat.
 - **Scan Barcode Cepat (Barcode-First)**: Pada menu **Produk**, tekan tombol **Scan barcode** di toolbar atas. Arahkan kamera ke barcode produk baru. Jika barcode belum terdaftar di database, aplikasi secara otomatis membuka form **Tambah produk** dengan kolom barcode yang sudah terisi. Anda tinggal melengkapi nama dan harga, lalu menyimpan produk baru tersebut tanpa mengetik ulang kode [2].
 - **Validasi Duplikasi**: Sistem secara otomatis menolak duplikasi barcode untuk mencegah kesalahan pencatatan barang.
 - **Menu Aksi Tiga Titik**: Pada daftar Produk, tekan tombol **⋮** di kolom Aksi untuk membuka pilihan **Edit produk**, **Atur stok**, **Aktifkan/Nonaktifkan**, dan **Hapus produk**. Menu ini sengaja diringkas agar tabel tetap bersih dan nyaman digunakan di layar HP.
@@ -55,7 +56,7 @@ Menu **Kasir** adalah pusat operasional penjualan harian. Versi `1.7.0` memperke
 4. Arahkan kamera ke barcode barang belanjaan pembeli satu per satu secara berurutan. Setiap kode unik yang terbaca akan dihitung secara real-time pada penunjuk status di bagian atas layar. Kode yang sama diabaikan secara otomatis agar tidak terhitung ganda.
 5. Setelah seluruh barang pembeli selesai dipindai, tekan tombol **Selesai (X)** di bagian bawah. Seluruh produk yang ditemukan dalam database lokal akan langsung dimasukkan ke keranjang belanja dalam satu proses tunggal.
 6. Jika terdapat barang yang belum terdaftar di katalog saat pemindaian massal, aplikasi akan membuka form **Tambah produk** secara berurutan untuk melengkapi data barang baru tersebut.
-7. Lanjutkan ke proses pembayaran dengan memilih metode (Tunai, Transfer, QRIS, dll.), masukkan jumlah uang yang diterima, lalu selesaikan transaksi untuk mencetak atau membagikan struk.
+7. Lanjutkan ke proses pembayaran dengan memilih metode (Tunai, Transfer, QRIS, dll.), masukkan jumlah uang yang diterima, lalu selesaikan transaksi. Jika **Cetak Bluetooth otomatis** aktif, struk akan langsung keluar dari printer thermal Anda. Anda juga bisa menekan tombol **Bluetooth** pada detail transaksi untuk mencetak ulang struk secara instan.
 
 ---
 

@@ -16,12 +16,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@awesome-cordova-plugins/bluetooth-serial": "^9.5.0",
     "@capacitor-community/sqlite": "^8.1.1",
     "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/share": "^8.0.1",
+    "cordova-plugin-bluetooth-serial": "^0.4.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

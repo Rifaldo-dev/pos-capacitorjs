@@ -85,7 +85,7 @@ export const createEmptyState = (): PosState => ({
   transactions: [],
   expenses: [],
   stockMovements: [],
-  settings: { storeName: 'POS UMKM Rifaldo', storeLogo: '', storeAddress: 'Jl. Ahmad Yani No. 12, Bandung', storePhone: '081298765432', taxRate: 0, allowNegativeStock: false, theme: 'light', receiptFooter: 'Terima kasih atas kunjungan Anda!', autoPrintReceipt: false },
+  settings: { storeName: 'POS UMKM Rifaldo', storeLogo: '', storeAddress: 'Jl. Ahmad Yani No. 12, Bandung', storePhone: '081298765432', taxRate: 0, allowNegativeStock: false, theme: 'light', receiptFooter: 'Terima kasih atas kunjungan Anda!', autoPrintReceipt: false, bluetoothPrinterAddress: '', bluetoothPrinterName: '', bluetoothPaperWidth: 58, autoPrintBluetooth: false },
 })
 
 const normalizeState = (value: PosState): PosState => ({ ...createEmptyState(), ...value, settings: { ...createEmptyState().settings, ...value.settings } })
@@ -105,6 +105,10 @@ const createSeedState = (): PosState => ({
     theme: 'light',
     receiptFooter: 'Terima kasih atas kunjungan Anda!',
     autoPrintReceipt: false,
+    bluetoothPrinterAddress: '',
+    bluetoothPrinterName: '',
+    bluetoothPaperWidth: 58,
+    autoPrintBluetooth: false,
   },
 })
 
