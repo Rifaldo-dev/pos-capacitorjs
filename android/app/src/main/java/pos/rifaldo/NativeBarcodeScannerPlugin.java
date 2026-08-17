@@ -2,7 +2,12 @@ package pos.rifaldo;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -42,7 +47,10 @@ import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.common.InputImage;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +73,7 @@ public class NativeBarcodeScannerPlugin extends Plugin {
     private Button torchButton;
     private Button finishButton;
     private TextView scanStatus;
+    private TrackingOverlay trackingOverlay;
     private boolean resultDelivered = false;
     private boolean multiScan = false;
     private final Set<String> scannedCodes = new LinkedHashSet<>();
@@ -125,6 +134,12 @@ public class NativeBarcodeScannerPlugin extends Plugin {
         FrameLayout cameraFrame = new FrameLayout(getActivity());
         cameraFrame.setBackgroundColor(Color.BLACK);
         cameraFrame.addView(previewView, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+
+        trackingOverlay = new TrackingOverlay(getActivity());
+        cameraFrame.addView(trackingOverlay, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         ));
@@ -263,20 +278,25 @@ public class NativeBarcodeScannerPlugin extends Plugin {
             imageProxy.close();
             return;
         }
-        InputImage inputImage = InputImage.fromMediaImage(
-            mediaImage,
-            imageProxy.getImageInfo().getRotationDegrees()
-        );
+        final int imageWidth = imageProxy.getWidth();
+        final int imageHeight = imageProxy.getHeight();
+        final int rotation = imageProxy.getImageInfo().getRotationDegrees();
+        InputImage inputImage = InputImage.fromMediaImage(mediaImage, rotation);
         barcodeScanner.process(inputImage)
             .addOnSuccessListener(barcodes -> {
                 if (resultDelivered || barcodes == null) return;
+                List<TrackedBarcode> detections = new ArrayList<>();
                 for (Barcode barcode : barcodes) {
                     String rawValue = barcode.getRawValue();
-                    if (rawValue == null || rawValue.trim().isEmpty()) continue;
+                    Rect bounds = barcode.getBoundingBox();
+                    if (rawValue == null || rawValue.trim().isEmpty() || bounds == null) continue;
                     String content = rawValue.trim();
+                    detections.add(new TrackedBarcode(new Rect(bounds), content, formatName(barcode.getFormat())));
                     if (!multiScan) {
                         resolvePending(content, formatName(barcode.getFormat()));
-                    } else if (scannedCodes.add(content)) {
+                        break;
+                    }
+                    if (scannedCodes.add(content)) {
                         String status = scannedCodes.size() + " produk terbaca";
                         getActivity().runOnUiThread(() -> {
                             if (scanStatus != null) scanStatus.setText(status);
@@ -286,10 +306,86 @@ public class NativeBarcodeScannerPlugin extends Plugin {
                             }
                         });
                     }
-                    break;
                 }
+                getActivity().runOnUiThread(() -> {
+                    if (trackingOverlay != null) trackingOverlay.setDetections(detections, imageWidth, imageHeight, rotation);
+                });
             })
+            .addOnFailureListener(error -> getActivity().runOnUiThread(() -> {
+                if (trackingOverlay != null) trackingOverlay.setDetections(Collections.emptyList(), imageWidth, imageHeight, rotation);
+            }))
             .addOnCompleteListener(task -> imageProxy.close());
+    }
+
+    private static final class TrackedBarcode {
+        final Rect bounds;
+        final String content;
+        final String format;
+
+        TrackedBarcode(Rect bounds, String content, String format) {
+            this.bounds = bounds;
+            this.content = content;
+            this.format = format;
+        }
+    }
+
+    private static final class TrackingOverlay extends View {
+        private final Paint boxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint labelTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private List<TrackedBarcode> detections = Collections.emptyList();
+        private int imageWidth;
+        private int imageHeight;
+        private int rotation;
+
+        TrackingOverlay(android.content.Context context) {
+            super(context);
+            setWillNotDraw(false);
+            boxPaint.setStyle(Paint.Style.STROKE);
+            boxPaint.setStrokeWidth(5f);
+            boxPaint.setColor(Color.rgb(0, 230, 118));
+            labelPaint.setStyle(Paint.Style.FILL);
+            labelPaint.setColor(0xCC0B2E20);
+            labelTextPaint.setStyle(Paint.Style.FILL);
+            labelTextPaint.setColor(Color.WHITE);
+            labelTextPaint.setTextSize(30f);
+            labelTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+
+        void setDetections(List<TrackedBarcode> detections, int imageWidth, int imageHeight, int rotation) {
+            this.detections = detections == null ? Collections.emptyList() : new ArrayList<>(detections);
+            this.imageWidth = imageWidth;
+            this.imageHeight = imageHeight;
+            this.rotation = rotation;
+            postInvalidate();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            if (detections.isEmpty() || imageWidth <= 0 || imageHeight <= 0 || getWidth() <= 0 || getHeight() <= 0) return;
+            int sourceWidth = rotation % 180 == 0 ? imageWidth : imageHeight;
+            int sourceHeight = rotation % 180 == 0 ? imageHeight : imageWidth;
+            float scale = Math.max((float) getWidth() / sourceWidth, (float) getHeight() / sourceHeight);
+            float offsetX = (getWidth() - sourceWidth * scale) / 2f;
+            float offsetY = (getHeight() - sourceHeight * scale) / 2f;
+            for (TrackedBarcode detection : detections) {
+                Rect bounds = detection.bounds;
+                RectF mapped = new RectF(
+                    bounds.left * scale + offsetX,
+                    bounds.top * scale + offsetY,
+                    bounds.right * scale + offsetX,
+                    bounds.bottom * scale + offsetY
+                );
+                canvas.drawRoundRect(mapped, 18f, 18f, boxPaint);
+                String label = detection.format + "  " + detection.content;
+                if (label.length() > 28) label = label.substring(0, 25) + "...";
+                float labelWidth = labelTextPaint.measureText(label) + 28f;
+                float labelTop = Math.max(8f, mapped.top - 48f);
+                canvas.drawRoundRect(mapped.left, labelTop, Math.min(getWidth() - 8f, mapped.left + labelWidth), labelTop + 42f, 12f, 12f, labelPaint);
+                canvas.drawText(label, mapped.left + 14f, labelTop + 30f, labelTextPaint);
+            }
+        }
     }
 
     private String formatName(int format) {
@@ -374,6 +470,7 @@ public class NativeBarcodeScannerPlugin extends Plugin {
         torchButton = null;
         finishButton = null;
         scanStatus = null;
+        trackingOverlay = null;
         if (scannerDialog != null) {
             Dialog dialog = scannerDialog;
             scannerDialog = null;

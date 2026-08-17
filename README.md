@@ -3,7 +3,7 @@
 Ini POS adalah aplikasi **Point of Sale offline-first** profesional untuk warung, toko kecil, kios, dan usaha rumahan (UMKM). Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, menyiapkan backup, maupun menyinkronkan data ke cloud.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [Ini POS v2.4.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.4.0)  
+> **Release publik:** [Ini POS v2.5.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.5.0)
 > **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)  
 
 
@@ -11,7 +11,7 @@ Ini POS adalah aplikasi **Point of Sale offline-first** profesional untuk warung
 
 ### Tampilan Beranda (Desktop & Mobile)
 
-Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.4.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
+Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.5.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
 
 ![Dashboard Ini POS](docs/screenshots/dashboard.png)
 
@@ -35,7 +35,7 @@ Ringkasan operasional toko: status offline, identitas toko, penjualan hari ini, 
 
 ### Kasir
 
-Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan banyak produk**, senter native, status scanner real-time, daftar produk bergambar, keranjang, ringkasan pajak, total, dan tombol pembayaran. Dukungan gambar produk memudahkan identifikasi barang secara visual.
+Layar transaksi dengan pencarian nama/SKU/barcode, tombol **Scan banyak produk**, senter native, status scanner real-time, daftar produk bergambar, keranjang, ringkasan pajak, total, dan tombol pembayaran. Dukungan gambar produk memudahkan identifikasi barang secara visual. Kamera native menampilkan **tracking box** dan label format/kode pada barcode yang sedang terdeteksi secara real-time.
 
 ![Menu Kasir](docs/screenshots/menu-kasir.png)
 
@@ -59,7 +59,7 @@ Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, 
 
 ### Pengaturan
 
-Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore, data demo, dan **Sinkronisasi Google Drive**. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
+Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore melalui Android Share Sheet, dan data demo. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
 
 ![Menu Pengaturan](docs/screenshots/menu-pengaturan.png)
 
@@ -69,7 +69,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 |---|---|
 | Dashboard | Ringkasan usaha profesional dengan status operasional, grafik penjualan, laba kotor, produk terlaris bergambar, stok menipis, dan akses cepat. |
 | Kasir | Pencarian produk bergambar (nama/SKU/barcode), keranjang belanja, diskon, pajak, pembayaran tunai/non-tunai, kembalian, dan invoice otomatis. |
-| Scan kamera | Scanner native Android (CameraX + ML Kit) 100% offline, mendukung senter, multi-scan, berbagai format barcode/QR, dan alur pendaftaran produk otomatis. |
+| Scan kamera | Scanner native Android (CameraX + ML Kit) 100% offline, mendukung senter, multi-scan, berbagai format barcode/QR, serta tracking box dan label kode secara real-time. |
 | Produk | CRUD katalog lengkap dengan **Foto Produk**, SKU/barcode, kategori, harga beli/jual, stok, dan menu aksi ringkas (⋮). |
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
@@ -207,8 +207,8 @@ Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian ya
 
 ## GitHub Release & Releases Directory
 
-Seluruh APK rilis yang telah diverifikasi disimpan secara rapi di dalam direktori `releases/` di root repository untuk memudahkan pengunduhan langsung tanpa mengotori direktori utama. Rilis terbaru **v2.4.0** membawa branding resmi **Ini POS**, integrasi Google Drive Cloud Backup, ekspor laporan Excel/PDF, cetak Bluetooth thermal, serta peningkatan stabilitas scanner native [1].
+Seluruh APK rilis yang telah diverifikasi disimpan secara rapi di dalam direktori `releases/` di root repository untuk memudahkan pengunduhan langsung tanpa mengotori direktori utama. Rilis terbaru **v2.5.0** membawa tracking visual barcode real-time pada scanner native, backup zero-config melalui Android Share Sheet, ekspor laporan Excel/PDF, cetak Bluetooth thermal, serta branding resmi **Ini POS** [1].
 
 ## Referensi
 
-[1] Ini POS v2.4.0 Release Notes and Architecture. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases) [2] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)
+[1] Ini POS v2.5.0 Release Notes and Architecture. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases) [2] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)

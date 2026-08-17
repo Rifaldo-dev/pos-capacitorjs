@@ -1,6 +1,6 @@
-# Panduan Pengguna Ini POS (v2.4.0)
+# Panduan Pengguna Ini POS (v2.5.0)
 
-Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **Ini POS** (versi `2.4.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
+Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **Ini POS** (versi `2.5.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
 
 > **Package Android:** `pos.rifaldo`  
 > **Repository GitHub:** [Rifaldo-dev/pos-capacitorjs](https://github.com/Rifaldo-dev/pos-capacitorjs)
@@ -52,11 +52,12 @@ Menu **Kasir** adalah pusat operasional penjualan harian. Fitur **Multi-Scan** d
 
 1. Buka menu **Kasir** di navigasi bawah.
 2. Tekan tombol **Scan banyak produk** untuk membuka kamera native Android.
-3. Jika kondisi ruangan atau pencahayaan kurang terang, tekan tombol **Senter** di sudut kanan bawah layar kamera untuk menyalakan lampu kilat perangkat secara langsung melalui CameraX API [4].
-4. Arahkan kamera ke barcode barang belanjaan pembeli satu per satu secara berurutan. Setiap kode unik yang terbaca akan dihitung secara real-time pada penunjuk status di bagian atas layar. Kode yang sama diabaikan secara otomatis agar tidak terhitung ganda.
-5. Setelah seluruh barang pembeli selesai dipindai, tekan tombol **Selesai (X)** di bagian bawah. Seluruh produk yang ditemukan dalam database lokal akan langsung dimasukkan ke keranjang belanja dalam satu proses tunggal.
-6. Jika terdapat barang yang belum terdaftar di katalog saat pemindaian massal, aplikasi akan membuka form **Tambah produk** secara berurutan untuk melengkapi data barang baru tersebut.
-7. Lanjutkan ke proses pembayaran dengan memilih metode (Tunai, Transfer, QRIS, dll.), masukkan jumlah uang yang diterima, lalu selesaikan transaksi. Jika **Cetak Bluetooth otomatis** aktif, struk akan langsung keluar dari printer thermal Anda. Anda juga bisa menekan tombol **Bluetooth** pada detail transaksi untuk mencetak ulang struk secara instan.
+3. Saat barcode terdeteksi, kamera menampilkan **tracking box** berwarna hijau dan label berisi format serta kode barcode. Kotak ini mengikuti posisi barcode secara real-time sehingga Anda dapat memastikan kode yang sedang dibaca.
+4. Jika kondisi ruangan atau pencahayaan kurang terang, tekan tombol **Senter** di sudut kanan bawah layar kamera untuk menyalakan lampu kilat perangkat secara langsung melalui CameraX API [4].
+5. Arahkan kamera ke barcode barang belanjaan pembeli satu per satu secara berurutan. Setiap kode unik yang terbaca akan dihitung secara real-time pada penunjuk status di bagian atas layar. Kode yang sama diabaikan secara otomatis agar tidak terhitung ganda.
+6. Setelah seluruh barang pembeli selesai dipindai, tekan tombol **Selesai (X)** di bagian bawah. Seluruh produk yang ditemukan dalam database lokal akan langsung dimasukkan ke keranjang belanja dalam satu proses tunggal.
+7. Jika terdapat barang yang belum terdaftar di katalog saat pemindaian massal, aplikasi akan membuka form **Tambah produk** secara berurutan untuk melengkapi data barang baru tersebut.
+8. Lanjutkan ke proses pembayaran dengan memilih metode (Tunai, Transfer, QRIS, dll.), masukkan jumlah uang yang diterima, lalu selesaikan transaksi. Jika **Cetak Bluetooth otomatis** aktif, struk akan langsung keluar dari printer thermal Anda. Anda juga bisa menekan tombol **Bluetooth** pada detail transaksi untuk mencetak ulang struk secara instan.
 
 ---
 
