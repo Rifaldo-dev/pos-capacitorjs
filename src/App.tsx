@@ -29,6 +29,7 @@ function App() {
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [prefilledBarcode, setPrefilledBarcode] = useState('')
+  const [pendingProductBarcodes, setPendingProductBarcodes] = useState<string[]>([])
   const [stockProduct, setStockProduct] = useState<Product | null>(null)
   const [showPayment, setShowPayment] = useState(false)
   const [showBackup, setShowBackup] = useState(false)
@@ -107,19 +108,65 @@ function App() {
     setShowProductForm(true)
   }
 
-  const scanForCashier = async () => {
-    const code = await scanProductCode()
-    if (!code) return
-    setSearch(code)
-    const product = activeProducts.find((item) => item.barcode === code || item.sku === code)
-    if (product) {
-      addToCart(product)
-      setScannerNotice((current) => ({ ...current, status: 'success', message: `${product.name} ditambahkan ke keranjang.` }))
-    } else {
-      setScannerNotice((current) => ({ ...current, status: 'not-found', message: `Kode ${code} belum terdaftar. Form tambah produk dibuka.` }))
-      setToast(`Kode ${code} belum terdaftar. Lengkapi data produk baru.`)
-      openAddProduct(code)
+  const scanProductCodes = async (): Promise<string[]> => {
+    if (scannerBusy) return []
+    setScannerBusy(true)
+    setScannerNotice({ status: 'opening', message: 'Membuka native camera untuk scan banyak produk...' })
+    try {
+      const result = await NativeBarcodeScanner.scan({ multiScan: true })
+      const codes = [...new Set((result.contents?.length ? result.contents : result.content ? [result.content] : []).map((code) => code.trim()).filter(Boolean))]
+      if (!codes.length) {
+        setScannerNotice({ status: 'cancelled', message: 'Belum ada kode yang dipindai.' })
+        return []
+      }
+      scannerFeedback()
+      setScannerNotice({ status: 'success', message: `${codes.length} barcode berhasil dipindai.`, code: codes.join(', '), format: 'Multi-scan' })
+      return codes
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Scanner native tidak tersedia.'
+      const cancelled = message.includes('SCAN_CANCELLED') || message.includes('SCAN_INTERRUPTED') || message.toLowerCase().includes('dibatalkan')
+      setScannerNotice({ status: cancelled ? 'cancelled' : 'error', message: cancelled ? 'Scan dibatalkan.' : message })
+      return []
+    } finally {
+      setScannerBusy(false)
     }
+  }
+
+  const addScannedProductsToCart = (codes: string[]) => {
+    const products = codes.map((code) => activeProducts.find((item) => item.barcode === code || item.sku === code)).filter((product): product is Product => Boolean(product))
+    let blocked = 0
+    const nextCart = [...cart]
+    products.forEach((product) => {
+      const existingIndex = nextCart.findIndex((item) => item.productId === product.id)
+      const nextQuantity = (existingIndex >= 0 ? nextCart[existingIndex].quantity : 0) + 1
+      const validation = validateQuantity(product, nextQuantity, state.settings.allowNegativeStock)
+      if (validation) {
+        blocked += 1
+        return
+      }
+      if (existingIndex >= 0) nextCart[existingIndex] = { ...nextCart[existingIndex], quantity: nextQuantity }
+      else nextCart.push({ productId: product.id, name: product.name, sku: product.sku, price: product.sellingPrice, cost: product.purchasePrice, quantity: 1, discount: 0 })
+    })
+    setCart(nextCart)
+    return { added: products.length - blocked, blocked }
+  }
+
+  const scanForCashier = async () => {
+    const codes = await scanProductCodes()
+    if (!codes.length) return
+    setSearch(codes.join(' '))
+    const knownCodes = codes.filter((code) => activeProducts.some((item) => item.barcode === code || item.sku === code))
+    const unknownCodes = codes.filter((code) => !knownCodes.includes(code))
+    const cartResult = addScannedProductsToCart(knownCodes)
+    if (unknownCodes.length) {
+      setPendingProductBarcodes(unknownCodes.slice(1))
+      setScannerNotice((current) => ({ ...current, status: 'not-found', message: `${unknownCodes.length} barcode belum terdaftar. Form produk pertama dibuka.` }))
+      setToast(`${cartResult.added} produk masuk keranjang. Lengkapi ${unknownCodes.length} produk baru.`)
+      openAddProduct(unknownCodes[0])
+      return
+    }
+    setScannerNotice((current) => ({ ...current, status: 'success', message: `${cartResult.added} produk ditambahkan ke keranjang.` }))
+    setToast(`${cartResult.added} produk hasil scan masuk ke keranjang.`)
   }
 
   const scanForNewProduct = async () => {
@@ -179,7 +226,16 @@ function App() {
     const movement = stockDelta === 0 ? [] : [{ id: newId('mov'), productId: product.id, type: existing ? 'adjustment' as const : 'restock' as const, quantity: Math.abs(stockDelta), stockBefore: existing?.stock ?? 0, stockAfter: stock, note: existing ? 'Penyesuaian stok dari edit produk' : 'Stok awal produk', createdAt }]
     const products = existing ? state.products.map((item) => item.id === product.id ? product : item) : [product, ...state.products]
     await save({ ...state, products, stockMovements: [...movement, ...state.stockMovements] }, existing ? 'Produk berhasil diperbarui' : 'Produk berhasil disimpan')
-    setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode('')
+    const nextBarcode = !existing ? pendingProductBarcodes[0] : ''
+    if (nextBarcode) {
+      setPendingProductBarcodes((current) => current.slice(1))
+      setEditingProduct(null)
+      setPrefilledBarcode(nextBarcode)
+      setShowProductForm(true)
+      setToast(`Produk tersimpan. Lanjut lengkapi barcode ${nextBarcode}.`)
+    } else {
+      setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode('')
+    }
   }
 
   const adjustStock = async (product: Product, mode: 'add' | 'remove' | 'set', amount: number, note: string) => {
@@ -252,7 +308,7 @@ function App() {
     </main>
     <BottomNav page={page} onNavigate={navigate} />
     {toast && <div className="toast"><span>✓</span>{toast}</div>}
-    {(showProductForm || editingProduct) && <ProductModal key={`${editingProduct?.id ?? 'new'}-${prefilledBarcode}`} state={state} product={editingProduct} prefilledBarcode={prefilledBarcode} onClose={() => { setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode('') }} onSubmit={saveProduct} onScan={scanProductCode} />}
+    {(showProductForm || editingProduct) && <ProductModal key={`${editingProduct?.id ?? 'new'}-${prefilledBarcode}`} state={state} product={editingProduct} prefilledBarcode={prefilledBarcode} onClose={() => { setShowProductForm(false); setEditingProduct(null); setPrefilledBarcode(''); setPendingProductBarcodes([]) }} onSubmit={saveProduct} onScan={scanProductCode} />}
     {stockProduct && <StockAdjustModal product={stockProduct} onClose={() => setStockProduct(null)} onSubmit={adjustStock} />}
     {showPayment && <PaymentModal state={state} cart={cart} onClose={() => setShowPayment(false)} onSubmit={completeTransaction} />}
     {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onShare={() => shareReceipt(selectedTransaction)} />}
@@ -277,7 +333,7 @@ function Metric({ label, value, detail, tone }: { label: string; value: string; 
 
 function Cashier({ state, cart, search, setSearch, filteredProducts, addToCart, updateCartQuantity, clearCart, onScan, scannerBusy, scannerNotice, onPay }: { state: PosState; cart: CartItem[]; search: string; setSearch: (value: string) => void; filteredProducts: Product[]; addToCart: (product: Product) => void; updateCartQuantity: (id: string, quantity: number) => void; clearCart: () => void; onScan: () => void; scannerBusy: boolean; scannerNotice: ScannerNotice; onPay: () => void }) {
   const totals = calculateCart(cart, state.settings.taxRate)
-  return <section className="page-body cashier-page"><div className="cashier-layout"><div className="catalog-panel"><div className="cashier-search-row"><div className="search-box large"><span>⌕</span><input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama, SKU, atau barcode..." /></div><button className="button scan-button" type="button" onClick={onScan} disabled={scannerBusy}>{scannerBusy ? 'Membuka kamera...' : '▣ Scan QR / barcode'}</button></div><div className={`scanner-feedback scanner-${scannerNotice.status}`} role="status" aria-live="polite"><span className="scanner-feedback-icon">{scannerNotice.status === 'success' ? '✓' : scannerNotice.status === 'opening' ? '…' : scannerNotice.status === 'error' ? '!' : '⌕'}</span><div><strong>{scannerNotice.message}</strong><small>{scannerNotice.code ? `${scannerNotice.format ?? 'Kode'} · ${scannerNotice.code}` : 'QR dan barcode produk didukung'}</small></div>{['error', 'cancelled', 'not-found', 'duplicate'].includes(scannerNotice.status) && <button type="button" className="text-button" onClick={onScan} disabled={scannerBusy}>Coba lagi</button>}</div><div className="section-line"><h3>Produk tersedia</h3><span>{filteredProducts.length} produk</span></div>{filteredProducts.length === 0 ? <Empty title="Produk tidak ditemukan" description="Coba kata kunci lain atau tambahkan produk." /> : <div className="product-grid">{filteredProducts.map((product) => <button className="product-card" key={product.id} onClick={() => addToCart(product)}><div className="product-image">{product.name.slice(0, 1)}</div><div className="product-copy"><strong>{product.name}</strong><small>{product.sku} · {product.stock} {product.unit}</small><b>{formatRupiah(product.sellingPrice)}</b></div></button>)}</div>}</div><div className="cart-panel"><div className="cart-heading"><div><h3>Keranjang</h3><span>{cart.reduce((sum, item) => sum + item.quantity, 0)} item</span></div><button className="text-button" onClick={() => cart.length && window.confirm('Kosongkan keranjang?') && clearCart()}>Kosongkan</button></div>{cart.length === 0 ? <div className="cart-empty"><div className="cart-icon">＋</div><strong>Keranjang masih kosong</strong><p>Pilih produk untuk memulai transaksi.</p></div> : <div className="cart-items">{cart.map((item) => <div className="cart-item" key={item.productId}><div className="cart-item-main"><span className="product-avatar">{item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{formatRupiah(item.price)} / unit</small></div></div><div className="quantity-control"><button onClick={() => updateCartQuantity(item.productId, item.quantity - 1)}>−</button><span>{item.quantity}</span><button onClick={() => updateCartQuantity(item.productId, item.quantity + 1)}>+</button></div><strong className="line-total">{formatRupiah(item.price * item.quantity)}</strong></div>)}</div>}<div className="cart-summary"><div><span>Subtotal</span><strong>{formatRupiah(totals.subtotal)}</strong></div><div><span>Pajak ({state.settings.taxRate}%)</span><strong>{formatRupiah(totals.tax)}</strong></div><div className="total-line"><span>Total</span><strong>{formatRupiah(totals.total)}</strong></div><button className="button primary pay-button" disabled={!cart.length} onClick={onPay}>Bayar sekarang <span>→</span></button></div></div></div></section>
+  return <section className="page-body cashier-page"><div className="cashier-layout"><div className="catalog-panel"><div className="cashier-search-row"><div className="search-box large"><span>⌕</span><input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama, SKU, atau barcode..." /></div><button className="button scan-button" type="button" onClick={onScan} disabled={scannerBusy}>{scannerBusy ? 'Membuka kamera...' : '▣ Scan banyak produk'}</button></div><div className={`scanner-feedback scanner-${scannerNotice.status}`} role="status" aria-live="polite"><span className="scanner-feedback-icon">{scannerNotice.status === 'success' ? '✓' : scannerNotice.status === 'opening' ? '…' : scannerNotice.status === 'error' ? '!' : '⌕'}</span><div><strong>{scannerNotice.message}</strong><small>{scannerNotice.code ? `${scannerNotice.format ?? 'Kode'} · ${scannerNotice.code}` : 'QR dan barcode produk didukung'}</small></div>{['error', 'cancelled', 'not-found', 'duplicate'].includes(scannerNotice.status) && <button type="button" className="text-button" onClick={onScan} disabled={scannerBusy}>Coba lagi</button>}</div><div className="section-line"><h3>Produk tersedia</h3><span>{filteredProducts.length} produk</span></div>{filteredProducts.length === 0 ? <Empty title="Produk tidak ditemukan" description="Coba kata kunci lain atau tambahkan produk." /> : <div className="product-grid">{filteredProducts.map((product) => <button className="product-card" key={product.id} onClick={() => addToCart(product)}><div className="product-image">{product.name.slice(0, 1)}</div><div className="product-copy"><strong>{product.name}</strong><small>{product.sku} · {product.stock} {product.unit}</small><b>{formatRupiah(product.sellingPrice)}</b></div></button>)}</div>}</div><div className="cart-panel"><div className="cart-heading"><div><h3>Keranjang</h3><span>{cart.reduce((sum, item) => sum + item.quantity, 0)} item</span></div><button className="text-button" onClick={() => cart.length && window.confirm('Kosongkan keranjang?') && clearCart()}>Kosongkan</button></div>{cart.length === 0 ? <div className="cart-empty"><div className="cart-icon">＋</div><strong>Keranjang masih kosong</strong><p>Pilih produk untuk memulai transaksi.</p></div> : <div className="cart-items">{cart.map((item) => <div className="cart-item" key={item.productId}><div className="cart-item-main"><span className="product-avatar">{item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{formatRupiah(item.price)} / unit</small></div></div><div className="quantity-control"><button onClick={() => updateCartQuantity(item.productId, item.quantity - 1)}>−</button><span>{item.quantity}</span><button onClick={() => updateCartQuantity(item.productId, item.quantity + 1)}>+</button></div><strong className="line-total">{formatRupiah(item.price * item.quantity)}</strong></div>)}</div>}<div className="cart-summary"><div><span>Subtotal</span><strong>{formatRupiah(totals.subtotal)}</strong></div><div><span>Pajak ({state.settings.taxRate}%)</span><strong>{formatRupiah(totals.tax)}</strong></div><div className="total-line"><span>Total</span><strong>{formatRupiah(totals.total)}</strong></div><button className="button primary pay-button" disabled={!cart.length} onClick={onPay}>Bayar sekarang <span>→</span></button></div></div></div></section>
 }
 
 function Products({ state, products, search, setSearch, onAdd, onScanAdd, scannerBusy, onEdit, onAdjust, onToggleActive, onDelete }: { state: PosState; products: Product[]; search: string; setSearch: (value: string) => void; onAdd: () => void; onScanAdd: () => void; scannerBusy: boolean; onEdit: (product: Product) => void; onAdjust: (product: Product) => void; onToggleActive: (product: Product) => void; onDelete: (product: Product) => void }) { return <section className="page-body"><div className="toolbar"><div className="search-box"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari produk, SKU, barcode..." /></div><div className="toolbar-actions"><button className="button secondary scan-add-button" onClick={onScanAdd} disabled={scannerBusy}>{scannerBusy ? 'Membuka kamera...' : '▣ Scan barcode'}</button><button className="button primary" onClick={onAdd}>＋ Tambah produk</button></div></div><div className="panel table-panel"><div className="table-meta"><div><h3>Daftar produk</h3><p>{products.filter((product) => product.isActive).length} aktif · {products.filter((product) => !product.isActive).length} nonaktif · {state.products.length} total</p></div><span className="filter-chip">Kelola katalog</span></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>SKU / Barcode</th><th>Kategori</th><th>Harga jual</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{products.map((product) => <tr className={product.isActive ? '' : 'inactive-row'} key={product.id}><td><div className="table-product"><span className="product-avatar">{product.name.slice(0, 1)}</span><strong>{product.name}</strong></div></td><td><span className="mono">{product.sku}</span><small>{product.barcode || 'Tanpa barcode'}</small></td><td><span className="category-chip">{state.categories.find((category) => category.id === product.categoryId)?.name ?? 'Umum'}</span></td><td><strong>{formatRupiah(product.sellingPrice)}</strong><small>Modal {formatRupiah(product.purchasePrice)}</small></td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock} {product.unit}</span><small>Min. {product.minimumStock} {product.unit}</small></td><td><span className={product.isActive ? 'status-badge completed' : 'status-badge voided'}>{product.isActive ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="table-actions"><button className="small-button" onClick={() => onEdit(product)}>Edit</button><button className="small-button" onClick={() => onAdjust(product)}>Stok</button><button className="small-button" onClick={() => onToggleActive(product)}>{product.isActive ? 'Nonaktifkan' : 'Aktifkan'}</button><button className="small-button danger-outline" onClick={() => onDelete(product)}>Hapus</button></div></td></tr>)}</tbody></table>{products.length === 0 && <Empty title="Belum ada produk" description="Tambahkan produk pertama untuk mulai berjualan." action="＋ Tambah produk" onAction={onAdd} />}</div></div></section> }

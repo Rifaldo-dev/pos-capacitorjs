@@ -20,11 +20,13 @@ import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
+import androidx.camera.core.TorchState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -40,6 +42,8 @@ import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.common.InputImage;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,10 +61,17 @@ public class NativeBarcodeScannerPlugin extends Plugin {
     private ImageAnalysis imageAnalysis;
     private BarcodeScanner barcodeScanner;
     private ExecutorService analysisExecutor;
+    private Camera camera;
+    private Button torchButton;
+    private Button finishButton;
+    private TextView scanStatus;
     private boolean resultDelivered = false;
+    private boolean multiScan = false;
+    private final Set<String> scannedCodes = new LinkedHashSet<>();
 
     @PluginMethod
     public void scan(PluginCall call) {
+        multiScan = Boolean.TRUE.equals(call.getBoolean("multiScan", false));
         if (pendingCall != null) {
             call.reject("Scanner sedang digunakan.");
             return;
@@ -84,6 +95,7 @@ public class NativeBarcodeScannerPlugin extends Plugin {
     private void startNativeScanner(PluginCall call) {
         pendingCall = call;
         resultDelivered = false;
+        scannedCodes.clear();
         analysisExecutor = Executors.newSingleThreadExecutor();
         barcodeScanner = BarcodeScanning.getClient(new BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
@@ -118,7 +130,7 @@ public class NativeBarcodeScannerPlugin extends Plugin {
         ));
 
         TextView guide = new TextView(getActivity());
-        guide.setText("Arahkan kamera ke QR atau barcode produk\nPemindaian berlangsung offline di perangkat");
+        guide.setText(multiScan ? "Scan banyak produk\nArahkan kamera ke barcode satu per satu" : "Arahkan kamera ke QR atau barcode produk");
         guide.setTextColor(Color.WHITE);
         guide.setTextSize(14);
         guide.setGravity(Gravity.CENTER);
@@ -132,6 +144,21 @@ public class NativeBarcodeScannerPlugin extends Plugin {
         );
         cameraFrame.addView(guide, guideParams);
 
+        scanStatus = new TextView(getActivity());
+        scanStatus.setText(multiScan ? "0 produk terbaca" : "Memindai...");
+        scanStatus.setTextColor(Color.WHITE);
+        scanStatus.setTextSize(14);
+        scanStatus.setGravity(Gravity.CENTER);
+        scanStatus.setPadding(18, 10, 18, 10);
+        scanStatus.setBackgroundColor(0xAA1B5E20);
+        FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP | Gravity.CENTER_HORIZONTAL
+        );
+        statusParams.topMargin = 92;
+        cameraFrame.addView(scanStatus, statusParams);
+
         Button cancel = new Button(getActivity());
         cancel.setText("Batal");
         cancel.setTextSize(14);
@@ -139,10 +166,39 @@ public class NativeBarcodeScannerPlugin extends Plugin {
         FrameLayout.LayoutParams cancelParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT,
-            Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL
+            Gravity.BOTTOM | (multiScan ? Gravity.START : Gravity.CENTER_HORIZONTAL)
         );
         cancelParams.bottomMargin = 28;
+        if (multiScan) cancelParams.leftMargin = 20;
         cameraFrame.addView(cancel, cancelParams);
+
+        torchButton = new Button(getActivity());
+        torchButton.setText("Senter: Mati");
+        torchButton.setTextSize(12);
+        torchButton.setOnClickListener(view -> toggleTorch());
+        FrameLayout.LayoutParams torchParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            Gravity.BOTTOM | Gravity.END
+        );
+        torchParams.bottomMargin = 28;
+        torchParams.rightMargin = 20;
+        cameraFrame.addView(torchButton, torchParams);
+
+        if (multiScan) {
+            finishButton = new Button(getActivity());
+            finishButton.setText("Selesai (0)");
+            finishButton.setTextSize(14);
+            finishButton.setEnabled(false);
+            finishButton.setOnClickListener(view -> resolveMultiScan());
+            FrameLayout.LayoutParams finishParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL
+            );
+            finishParams.bottomMargin = 28;
+            cameraFrame.addView(finishButton, finishParams);
+        }
 
         scannerDialog = new Dialog(getActivity());
         scannerDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -181,12 +237,16 @@ public class NativeBarcodeScannerPlugin extends Plugin {
                 imageAnalysis.setAnalyzer(analysisExecutor, this::analyzeFrame);
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(
+                camera = cameraProvider.bindToLifecycle(
                     (LifecycleOwner) getActivity(),
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageAnalysis
                 );
+                if (torchButton != null && !camera.getCameraInfo().hasFlashUnit()) {
+                    torchButton.setEnabled(false);
+                    torchButton.setText("Senter tidak tersedia");
+                }
             } catch (ExecutionException | InterruptedException | RuntimeException error) {
                 rejectPending("Kamera native tidak dapat dimulai: " + error.getMessage(), "CAMERA_START_FAILED");
             }
@@ -212,10 +272,21 @@ public class NativeBarcodeScannerPlugin extends Plugin {
                 if (resultDelivered || barcodes == null) return;
                 for (Barcode barcode : barcodes) {
                     String rawValue = barcode.getRawValue();
-                    if (rawValue != null && !rawValue.trim().isEmpty()) {
-                        resolvePending(rawValue.trim(), formatName(barcode.getFormat()));
-                        break;
+                    if (rawValue == null || rawValue.trim().isEmpty()) continue;
+                    String content = rawValue.trim();
+                    if (!multiScan) {
+                        resolvePending(content, formatName(barcode.getFormat()));
+                    } else if (scannedCodes.add(content)) {
+                        String status = scannedCodes.size() + " produk terbaca";
+                        getActivity().runOnUiThread(() -> {
+                            if (scanStatus != null) scanStatus.setText(status);
+                            if (finishButton != null) {
+                                finishButton.setEnabled(true);
+                                finishButton.setText("Selesai (" + scannedCodes.size() + ")");
+                            }
+                        });
                     }
+                    break;
                 }
             })
             .addOnCompleteListener(task -> imageProxy.close());
@@ -233,6 +304,31 @@ public class NativeBarcodeScannerPlugin extends Plugin {
             case Barcode.FORMAT_QR_CODE: return "QR Code";
             default: return "Barcode";
         }
+    }
+
+    private void toggleTorch() {
+        if (camera == null || !camera.getCameraInfo().hasFlashUnit()) return;
+        Integer state = camera.getCameraInfo().getTorchState().getValue();
+        boolean enabled = state != null && state == TorchState.ON;
+        camera.getCameraControl().enableTorch(!enabled);
+        if (torchButton != null) torchButton.setText(!enabled ? "Senter: Nyala" : "Senter: Mati");
+    }
+
+    private void resolveMultiScan() {
+        if (resultDelivered || pendingCall == null || scannedCodes.isEmpty()) return;
+        resultDelivered = true;
+        PluginCall call = pendingCall;
+        pendingCall = null;
+        JSArray contents = new JSArray();
+        for (String code : scannedCodes) contents.put(code);
+        closeScannerResources();
+        JSObject result = new JSObject();
+        result.put("content", scannedCodes.iterator().next());
+        result.put("contents", contents);
+        result.put("count", scannedCodes.size());
+        result.put("format", "Barcode / QR");
+        result.put("cancelled", false);
+        call.resolve(result);
     }
 
     private void resolvePending(String content, String format) {
@@ -262,6 +358,7 @@ public class NativeBarcodeScannerPlugin extends Plugin {
             cameraProvider.unbindAll();
             cameraProvider = null;
         }
+        camera = null;
         if (imageAnalysis != null) {
             imageAnalysis.clearAnalyzer();
             imageAnalysis = null;
@@ -274,6 +371,9 @@ public class NativeBarcodeScannerPlugin extends Plugin {
             analysisExecutor.shutdownNow();
             analysisExecutor = null;
         }
+        torchButton = null;
+        finishButton = null;
+        scanStatus = null;
         if (scannerDialog != null) {
             Dialog dialog = scannerDialog;
             scannerDialog = null;
