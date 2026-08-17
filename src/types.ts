@@ -94,11 +94,6 @@ export interface StoreSettings {
   bluetoothPaperWidth?: 58 | 80
   autoPrintBluetooth?: boolean
   lastBackupAt?: string
-  googleDriveClientId?: string
-  googleDriveAccountEmail?: string
-  googleDriveAutoBackup?: boolean
-  googleDriveLastBackupAt?: string
-  googleDriveBackupFileId?: string
 }
 
 export interface PosState {

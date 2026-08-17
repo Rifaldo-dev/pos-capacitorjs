@@ -5,7 +5,7 @@ Ini POS adalah aplikasi **Point of Sale offline-first** profesional untuk warung
 > **Package Android:** `pos.rifaldo`  
 > **Release publik:** [Ini POS v2.4.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.4.0)  
 > **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)  
-> **Panduan Google Drive:** [Konfigurasi Google Drive Sync](docs/GOOGLE_DRIVE_SETUP.md)
+
 
 ## Tampilan Aplikasi
 
@@ -74,7 +74,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
 | Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (`.xlsx`) atau PDF profesional secara offline. |
-| Google Drive Sync | Backup dan pemulihan cloud opsional ke Google Drive pribadi pengguna dengan enkripsi lokal dan autentikasi OAuth. |
+| Cadangan & Pemulihan | Backup zero-config mandiri melalui Menu Berbagi Android (Share Sheet) langsung ke Google Drive, WhatsApp, email, atau penyimpanan perangkat. |},{all:false,find:
 | Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
 | Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
 | Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |
@@ -99,9 +99,11 @@ Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar hist
 
 Struk dapat dicetak langsung ke **Printer Bluetooth Thermal** (58mm/80mm) menggunakan perintah ESC/POS native, atau melalui dialog print Android/browser dan Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
 
-### Sinkronisasi Google Drive
+### Cadangan & Pemulihan (Zero-Config Cloud Backup)
 
-Fitur backup cloud opsional tersedia pada menu **Pengaturan → Sinkronisasi Google Drive**. Fitur ini memungkinkan Anda mencadangkan data transaksi, produk, dan pengaturan ke Google Drive pribadi. Karena menggunakan akun pribadi, pengguna perlu membuat Client ID OAuth di Google Cloud Console (panduan lengkap di [GOOGLE_DRIVE_SETUP.md](docs/GOOGLE_DRIVE_SETUP.md)). Setelah OAuth Client ID dimasukkan dan akun terhubung, Anda dapat melakukan backup manual, melihat daftar riwayat backup cloud, memulihkan data, atau mengaktifkan backup otomatis.
+Fitur pencadangan data mandiri tersedia pada menu **Pengaturan → Cadangan & Pemulihan**. Aplikasi ini dirancang 100% mandiri tanpa memerlukan konfigurasi *Client ID*, akun pengembang, atau server pihak ketiga. 
+
+Saat Anda menekan tombol **Bagikan Cadangan**, aplikasi mengekspor data toko dalam format JSON dan membuka menu Berbagi bawaan Android (*Android Share Sheet*). Anda dapat langsung memilih **"Simpan ke Drive"** (untuk menyimpan ke Google Drive pribadi Anda), **"WhatsApp"**, **"Gmail"**, atau aplikasi penyimpanan cloud lainnya. Untuk memulihkan data (*restore*), gunakan menu **Kelola Backup** untuk memilih file JSON yang sebelumnya telah disimpan.
 
 ## Menjalankan dari Source Code
 

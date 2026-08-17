@@ -99,11 +99,7 @@ export const createEmptyState = (): PosState => ({
     bluetoothPrinterName: '', 
     bluetoothPaperWidth: 58, 
     autoPrintBluetooth: false, 
-    googleDriveClientId: '', 
-    googleDriveAccountEmail: '', 
-    googleDriveAutoBackup: false, 
-    googleDriveLastBackupAt: '', 
-    googleDriveBackupFileId: '' 
+     
   },
 })
 

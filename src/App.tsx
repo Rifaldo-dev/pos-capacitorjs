@@ -5,7 +5,6 @@ import { NativeBarcodeScanner } from './nativeScanner'
 import { connectBluetoothPrinter, enableBluetooth, isBluetoothEnabled, listPairedPrinters, type BluetoothDevice } from './bluetoothPrinter'
 import { printTransactionBluetooth } from './thermalPrinter'
 import { exportTransactionsExcel, exportTransactionsPDF } from './reports'
-import { downloadBackupFromDrive, getCachedDriveUser, listDriveBackups, signInWithGoogle, signOutGoogle, uploadBackupToDrive, type GoogleDriveUser } from './googleDrive'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
 import type { CartItem, Page, PaymentMethod, PosState, Product, StoreSettings, Transaction } from './types'
 import './styles.css'
@@ -86,11 +85,8 @@ function App() {
   const lastScanRef = useRef<{ code: string; at: number } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
   const [printerBusy, setPrinterBusy] = useState(false)
-  const autoBackupTimerRef = useRef<number | null>(null)
-  const autoBackupRunningRef = useRef(false)
 
   useEffect(() => { initializeStore().then(setState) }, [])
-  useEffect(() => () => { if (autoBackupTimerRef.current) window.clearTimeout(autoBackupTimerRef.current) }, [])
   useEffect(() => {
     if (!toast) return
     const timer = window.setTimeout(() => setToast(''), 2800)
@@ -102,26 +98,6 @@ function App() {
     await persistState(next)
     if (message) setToast(message)
 
-    const driveUser = getCachedDriveUser()
-    if (next.settings.googleDriveAutoBackup && driveUser && !autoBackupRunningRef.current) {
-      if (autoBackupTimerRef.current) window.clearTimeout(autoBackupTimerRef.current)
-      autoBackupTimerRef.current = window.setTimeout(() => {
-        void (async () => {
-          autoBackupRunningRef.current = true
-          try {
-            const fileId = await uploadBackupToDrive(next, driveUser.accessToken)
-            const backupTime = timestamp()
-            const withBackupMeta = { ...next, settings: { ...next.settings, googleDriveBackupFileId: fileId, googleDriveLastBackupAt: backupTime } }
-            setState(withBackupMeta)
-            await persistState(withBackupMeta)
-          } catch (error) {
-            console.warn('Backup otomatis Google Drive gagal:', error)
-          } finally {
-            autoBackupRunningRef.current = false
-          }
-        })()
-      }, 1400)
-    }
   }
 
   if (!state) return <div className="boot-screen"><div className="logo-mark">IP</div><h1>Ini POS</h1><p>Menyiapkan kasir offline...</p></div>
@@ -348,6 +324,24 @@ function App() {
     save({ ...state, settings: { ...state.settings, lastBackupAt: timestamp() } }, 'Backup berhasil dibuat')
   }
 
+  const shareBackup = async () => {
+    const fileName = `ini-pos-backup-${todayKey()}.json`
+    const fileContent = JSON.stringify(createBackup(state), null, 2)
+    const backupTime = timestamp()
+    try {
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem')
+      const { Share } = await import('@capacitor/share')
+      const path = `ini-pos-backups/${fileName}`
+      await Filesystem.writeFile({ path, directory: Directory.Cache, data: fileContent, encoding: Encoding.UTF8, recursive: true })
+      const { uri } = await Filesystem.getUri({ path, directory: Directory.Cache })
+      await Share.share({ title: 'Cadangan data Ini POS', text: 'Pilih Simpan ke Drive atau aplikasi lain untuk menyimpan cadangan Anda.', files: [uri], dialogTitle: 'Simpan cadangan Ini POS' })
+      await save({ ...state, settings: { ...state.settings, lastBackupAt: backupTime } }, 'Menu berbagi cadangan dibuka')
+    } catch {
+      downloadBackup()
+      setToast('Cadangan disiapkan sebagai file. Pilih Simpan ke Drive atau aplikasi lain.')
+    }
+  }
+
   const importBackup = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; if (!file) return
     const reader = new FileReader()
@@ -392,7 +386,7 @@ function App() {
     {stockProduct && <StockAdjustModal product={stockProduct} onClose={() => setStockProduct(null)} onSubmit={adjustStock} />}
     {showPayment && <PaymentModal state={state} cart={cart} onClose={() => setShowPayment(false)} onSubmit={completeTransaction} />}
     {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onBluetoothPrint={() => printBluetoothReceipt(selectedTransaction)} onShare={() => shareReceipt(selectedTransaction)} />}
-    {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onImport={() => importRef.current?.click()} />}
+    {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onShare={shareBackup} onImport={() => importRef.current?.click()} />}
     <input ref={importRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importBackup} />
     {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur Ini POS." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
   </div>
@@ -485,7 +479,7 @@ function Transactions({ state, onSelect }: { state: PosState; onSelect: (transac
 }
 function Inventory({ state, lowStock, onEdit, onAdjust }: { state: PosState; lowStock: Product[]; onEdit: (product: Product) => void; onAdjust: (product: Product) => void }) { return <section className="page-body"><div className="metric-grid compact"><Metric label="Total produk" value={String(state.products.length)} detail="Dalam katalog" tone="blue" /><Metric label="Stok menipis" value={String(lowStock.length)} detail="Di bawah minimum" tone="orange" /><Metric label="Produk habis" value={String(state.products.filter((p) => p.stock === 0).length)} detail="Perlu restock" tone="purple" /></div><div className="panel table-panel"><div className="table-meta"><div><h3>Kontrol stok</h3><p>Tambah, kurangi, atau set stok baru. Semua perubahan tercatat.</p></div></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>Stok saat ini</th><th>Minimum</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{state.products.map((product) => <tr key={product.id}><td><div className="table-product"><ProductVisual product={product} className="product-avatar" /><strong>{product.name}</strong></div></td><td><strong>{product.stock} {product.unit}</strong></td><td>{product.minimumStock} {product.unit}</td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock === 0 ? 'Habis' : product.stock <= product.minimumStock ? 'Stok rendah' : 'Aman'}</span></td><td><div className="table-actions"><button className="small-button" onClick={() => onAdjust(product)}>Atur stok</button><button className="small-button" onClick={() => onEdit(product)}>Edit</button></div></td></tr>)}</tbody></table></div></div><div className="panel movement-panel"><div className="panel-heading"><div><h3>Riwayat perubahan stok</h3><p>Audit restock, penjualan, refund, dan penyesuaian.</p></div></div><div className="movement-list">{state.stockMovements.slice(0, 12).map((movement) => { const product = state.products.find((item) => item.id === movement.productId); return <div className="movement-row" key={movement.id}><span className={`movement-dot ${movement.type}`} /> <div><strong>{product?.name ?? 'Produk dihapus'}</strong><small>{movement.note} · {formatDate(movement.createdAt)}</small></div><b>{movement.type === 'sale' || movement.type === 'refund' ? `${movement.type === 'sale' ? '-' : '+'}${movement.quantity}` : `${movement.stockBefore} → ${movement.stockAfter}`}</b></div> })}{state.stockMovements.length === 0 && <Empty title="Belum ada perubahan stok" description="Aktivitas stok akan tercatat di sini." />}</div></div></section> }
 
-type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'printer' | 'cloud' | 'appearance' | 'security' | 'data'
+type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'printer' | 'backup' | 'appearance' | 'security' | 'data'
 
 function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; onSave: (next: PosState, message?: string) => Promise<void>; onBackup: () => void; onSeed: () => void }) {
   const [activeSubPage, setActiveSubPage] = useState<SettingsSubPage>('main')
@@ -494,10 +488,6 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
   const [pairedPrinters, setPairedPrinters] = useState<BluetoothDevice[]>([])
   const [printerLoading, setPrinterLoading] = useState(false)
   const [printerMessage, setPrinterMessage] = useState('')
-  const [driveUser, setDriveUser] = useState<GoogleDriveUser | null>(null)
-  const [driveLoading, setDriveLoading] = useState(false)
-  const [driveMessage, setDriveMessage] = useState('')
-  const [driveBackups, setDriveBackups] = useState<Array<{ id: string; name: string; modifiedTime: string }>>([])
 
   const handleToggle = async (key: keyof StoreSettings, value: boolean) => {
     const nextSettings = { ...localSettings, [key]: value }
@@ -644,79 +634,20 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
     )
   }
 
-  if (activeSubPage === 'cloud') {
-    const clientId = localSettings.googleDriveClientId ?? ''
-    const placeholderClientId = !clientId || clientId.startsWith('YOUR_')
-    const connectDrive = async () => {
-      if (placeholderClientId) { setDriveMessage('Masukkan OAuth Web Client ID terlebih dahulu. Lihat panduan Google Drive di dokumentasi.'); return }
-      setDriveLoading(true); setDriveMessage('Membuka login Google...')
-      try {
-        const user = await signInWithGoogle(clientId)
-        setDriveUser(user)
-        const nextSettings = { ...localSettings, googleDriveAccountEmail: user.email }
-        setLocalSettings(nextSettings)
-        await onSave({ ...state, settings: nextSettings }, 'Akun Google berhasil terhubung')
-        setDriveMessage(`Terhubung sebagai ${user.email}.`)
-      } catch (error) { setDriveMessage(error instanceof Error ? error.message : 'Login Google gagal.') }
-      finally { setDriveLoading(false) }
-    }
-    const disconnectDrive = async () => {
-      await signOutGoogle()
-      const nextSettings = { ...localSettings, googleDriveAccountEmail: '', googleDriveBackupFileId: '', googleDriveLastBackupAt: '', googleDriveAutoBackup: false }
-      setDriveUser(null); setDriveBackups([]); setLocalSettings(nextSettings)
-      await onSave({ ...state, settings: nextSettings }, 'Akun Google diputuskan')
-      setDriveMessage('Akun Google telah diputuskan dari aplikasi.')
-    }
-    const backupNow = async () => {
-      if (!driveUser) { setDriveMessage('Hubungkan akun Google terlebih dahulu.'); return }
-      setDriveLoading(true); setDriveMessage('Mengunggah backup ke Google Drive...')
-      try {
-        const fileId = await uploadBackupToDrive(state, driveUser.accessToken)
-        const backupTime = timestamp()
-        const nextSettings = { ...localSettings, googleDriveAccountEmail: driveUser.email, googleDriveBackupFileId: fileId, googleDriveLastBackupAt: backupTime }
-        setLocalSettings(nextSettings)
-        await onSave({ ...state, settings: nextSettings }, 'Backup Google Drive berhasil')
-        setDriveMessage(`Backup terakhir: ${formatDate(backupTime)}`)
-      } catch (error) { setDriveMessage(error instanceof Error ? error.message : 'Backup Google Drive gagal.') }
-      finally { setDriveLoading(false) }
-    }
-    const loadBackups = async () => {
-      if (!driveUser) { setDriveMessage('Hubungkan akun Google terlebih dahulu.'); return }
-      setDriveLoading(true); setDriveMessage('Memuat daftar backup...')
-      try { setDriveBackups(await listDriveBackups(driveUser.accessToken)); setDriveMessage('Daftar backup diperbarui.') }
-      catch (error) { setDriveMessage(error instanceof Error ? error.message : 'Daftar backup tidak dapat dimuat.') }
-      finally { setDriveLoading(false) }
-    }
-    const restoreBackup = async (fileId: string) => {
-      if (!driveUser) return
-      if (!window.confirm('Pulihkan backup ini? Data lokal saat ini akan digantikan oleh isi backup.')) return
-      setDriveLoading(true); setDriveMessage('Mengunduh dan memeriksa backup...')
-      try {
-        const restored = await downloadBackupFromDrive(fileId, driveUser.accessToken)
-        await onSave(restored, 'Data berhasil dipulihkan dari Google Drive')
-        setLocalSettings(restored.settings)
-        setDriveMessage('Pemulihan selesai. Data lokal telah diperbarui.')
-      } catch (error) { setDriveMessage(error instanceof Error ? error.message : 'Pemulihan backup gagal.') }
-      finally { setDriveLoading(false) }
-    }
+  if (activeSubPage === 'backup') {
     return (
       <div className="settings-subpage">
         <div className="settings-header">
           <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
-          <h2>Sinkronisasi Google Drive</h2>
+          <h2>Cadangan & Pemulihan</h2>
         </div>
         <div className="settings-subpage-content">
-          <div className="cloud-intro"><div className="cloud-icon">☁</div><div><strong>Backup aman di akun Google Anda</strong><p>Data disimpan sebagai file backup milik aplikasi. Penjualan tetap berjalan offline; internet hanya diperlukan saat sinkronisasi.</p></div></div>
-          <div className="settings-form-group"><label>Kunci Sinkronisasi (Web Client ID)</label><input value={localSettings.googleDriveClientId ?? ''} onChange={(event) => setLocalSettings({ ...localSettings, googleDriveClientId: event.target.value.trim() })} placeholder="123456789-abc.apps.googleusercontent.com" /><p className="settings-form-hint">Dapatkan Client ID dari Google Cloud Console. Lihat panduan di dokumentasi untuk cara mendapatkannya.</p></div>
-          {placeholderClientId && <div className="cloud-warning">Client ID belum dikonfigurasi. Menu ini sudah siap, tetapi login Google belum dapat digunakan sampai Client ID dimasukkan.</div>}
-          {driveUser || localSettings.googleDriveAccountEmail ? <div className="cloud-account"><div><span className="cloud-status-dot" />Terhubung sebagai <strong>{driveUser?.email || localSettings.googleDriveAccountEmail}</strong></div><button className="text-button" onClick={() => void disconnectDrive()}>Putuskan</button></div> : <button className="button secondary" onClick={() => void connectDrive()} disabled={driveLoading || placeholderClientId}>{driveLoading ? 'Memproses...' : 'Hubungkan akun Google'}</button>}
-          {driveMessage && <div className="cloud-message">{driveMessage}</div>}
-          <div className="cloud-actions"><button className="button primary" onClick={() => void backupNow()} disabled={driveLoading || !driveUser}>{driveLoading ? 'Memproses...' : 'Backup sekarang'}</button><button className="button secondary" onClick={() => void loadBackups()} disabled={driveLoading || !driveUser}>Lihat backup</button></div>
-          <div className="settings-group cloud-auto-group"><div className="settings-switch-row"><div className="settings-switch-info"><span className="settings-switch-label">Backup otomatis</span><span className="settings-switch-desc">Menandai preferensi backup otomatis. Proses hanya berjalan setelah akun terhubung.</span></div><label className="switch"><input type="checkbox" checked={Boolean(localSettings.googleDriveAutoBackup)} disabled={!driveUser} onChange={(event) => setLocalSettings({ ...localSettings, googleDriveAutoBackup: event.target.checked })} /><span className="slider"></span></label></div></div>
-          {localSettings.googleDriveLastBackupAt && <p className="settings-form-hint">Backup terakhir: {formatDate(localSettings.googleDriveLastBackupAt)}</p>}
-          {driveBackups.length > 0 && <div className="cloud-backup-list"><h3>Backup tersedia</h3>{driveBackups.map((backup) => <div className="cloud-backup-row" key={backup.id}><div><strong>{backup.name}</strong><small>{formatDate(backup.modifiedTime)}</small></div><button className="small-button" onClick={() => void restoreBackup(backup.id)}>Pulihkan</button></div>)}</div>}
+          <div className="cloud-intro"><div className="cloud-icon">⇄</div><div><strong>Simpan cadangan ke mana saja</strong><p>Ini POS tetap berjalan offline. Cadangan dibuat di perangkat, lalu Anda dapat menyimpannya ke Google Drive, WhatsApp, email, atau aplikasi lain melalui menu berbagi Android.</p></div></div>
+          <div className="info-box"><strong>Tidak perlu Client ID.</strong><br />Aplikasi tidak terhubung ke server pengembang atau akun Google milik pembuat aplikasi. Anda memilih sendiri tempat penyimpanan cadangan.</div>
+          <div className="cloud-actions"><button className="button primary" onClick={onBackup}>Bagikan Cadangan</button><button className="button secondary" onClick={() => setActiveSubPage('main')}>Kembali</button></div>
+          {state.settings.lastBackupAt && <p className="settings-form-hint">Cadangan terakhir: {formatDate(state.settings.lastBackupAt)}</p>}
+          <div className="settings-form-group"><label>Pemulihan data</label><p className="settings-form-hint">Buka menu Kelola Backup untuk memilih file JSON dari Google Drive atau penyimpanan perangkat, lalu pulihkan dengan konfirmasi.</p><button className="button secondary" onClick={onBackup}>Buka Kelola Backup</button></div>
         </div>
-        <div className="settings-save-area"><button className="button primary" onClick={() => handleSaveSubPage('Pengaturan Google Drive disimpan')}>Simpan</button></div>
       </div>
     )
   }
@@ -847,10 +778,10 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
       <div className="settings-section">
         <div className="settings-section-title">Data & Backup</div>
         <div className="settings-group">
-          <button className="settings-row" onClick={() => setActiveSubPage('cloud')}>
+          <button className="settings-row" onClick={() => setActiveSubPage('backup')}>
             <div className="settings-row-info">
-              <span className="settings-row-label">Sinkronisasi Google Drive</span>
-              <span className="settings-row-value">{localSettings.googleDriveAccountEmail || 'Belum dikonfigurasi'}</span>
+              <span className="settings-row-label">Cadangan & Pemulihan</span>
+              <span className="settings-row-value">{localSettings.lastBackupAt ? `Terakhir: ${formatDate(localSettings.lastBackupAt)}` : 'Bagikan ke Drive atau aplikasi lain'}</span>
             </div>
             <span className="settings-row-chevron">›</span>
           </button>
@@ -962,7 +893,7 @@ function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onBlue
   </Modal>
 }
 
-function BackupModal({ state, onClose, onDownload, onImport }: { state: PosState; onClose: () => void; onDownload: () => void; onImport: () => void }) { return <Modal title="Kelola Cadangan Data" onClose={onClose}><div className="backup-card"><div className="backup-icon">⇄</div><div><h3>Data Anda tersimpan lokal</h3><p>Cadangan mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div><div className="backup-actions"><button className="button primary" onClick={onDownload}>↓ Unduh Cadangan JSON</button><button className="button secondary" onClick={onImport}>↑ Impor Cadangan</button></div><div className="info-box">Pemulihan (Restore) akan mengganti data aktif setelah konfirmasi.</div></Modal> }
+function BackupModal({ state, onClose, onDownload, onShare, onImport }: { state: PosState; onClose: () => void; onDownload: () => void; onShare: () => void; onImport: () => void }) { return <Modal title="Kelola Cadangan Data" onClose={onClose}><div className="backup-card"><div className="backup-icon">⇄</div><div><h3>Data Anda tersimpan lokal</h3><p>Cadangan mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div><div className="backup-actions"><button className="button primary" onClick={onShare}>↗ Bagikan ke Drive / aplikasi lain</button><button className="button secondary" onClick={onDownload}>↓ Unduh Cadangan JSON</button><button className="button secondary" onClick={onImport}>↑ Impor Cadangan</button></div><div className="info-box">Pilih “Simpan ke Drive” pada menu berbagi Android untuk menyimpan cadangan ke akun Google Anda. Pemulihan dilakukan dengan memilih file JSON dari penyimpanan perangkat.</div></Modal> }
 function ConfirmModal({ title, description, onClose, onConfirm }: { title: string; description: string; onClose: () => void; onConfirm: () => void }) { return <Modal title={title} onClose={onClose}><p className="confirm-copy">{description}</p><div className="modal-actions"><button className="button secondary" onClick={onClose}>Batal</button><button className="button primary" onClick={onConfirm}>Lanjutkan</button></div></Modal> }
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="modal"><div className="modal-header"><h2>{title}</h2><button className="close-button" onClick={onClose}>×</button></div>{children}</div></div> }
 function Empty({ title, description, action, onAction }: { title: string; description: string; action?: string; onAction?: () => void }) { return <div className="empty-state"><div className="empty-icon">□</div><strong>{title}</strong><p>{description}</p>{action && onAction && <button className="button secondary" onClick={onAction}>{action}</button>}</div> }

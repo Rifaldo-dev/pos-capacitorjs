@@ -94,28 +94,21 @@ Karena seluruh data bersifat mandiri di perangkat Anda, disarankan untuk rutin m
 
 ---
 
-## 9. Sinkronisasi Google Drive (Cloud Backup Opsional)
+## 9. Cadangan & Pemulihan (Zero-Config Cloud Backup)
 
-Fitur ini adalah backup cloud opsional untuk melindungi data toko ketika perangkat rusak, hilang, atau diganti. Seluruh transaksi tetap dapat dilakukan secara offline; internet hanya diperlukan ketika login Google, backup, melihat daftar backup, atau memulihkan data.
+Fitur pencadangan data mandiri tersedia pada menu **Pengaturan → Cadangan & Pemulihan**. Aplikasi ini dirancang 100% mandiri tanpa memerlukan konfigurasi *Client ID*, akun pengembang, atau server pihak ketiga.
 
-### Konfigurasi Pertama Kali
+### Cara Menyimpan Cadangan:
+1. Buka menu **Pengaturan**, lalu pilih **Cadangan & Pemulihan**.
+2. Tekan tombol **Bagikan Cadangan**.
+3. Aplikasi akan mengekspor data toko dalam format JSON dan membuka menu Berbagi bawaan Android (*Android Share Sheet*).
+4. Pilih **"Simpan ke Drive"** (untuk langsung menyimpan ke Google Drive pribadi Anda), **"WhatsApp"**, **"Gmail"**, atau aplikasi penyimpanan cloud lainnya.
 
-1. Buat project Google Cloud, aktifkan **Google Drive API**, dan siapkan OAuth consent screen.
-2. Buat OAuth Client ID Android dengan package `pos.rifaldo` serta SHA-1 signing certificate aplikasi.
-3. Buat OAuth Client ID Web, lalu salin Client ID yang berakhiran `.apps.googleusercontent.com`.
-4. Buka **Pengaturan → Sinkronisasi Google Drive** di Ini POS.
-5. Masukkan Web Client ID, simpan, lalu tekan **Hubungkan akun Google**.
-6. Setelah login berhasil, tekan **Backup sekarang** untuk membuat backup pertama.
-
-Panduan konfigurasi Google Cloud yang lebih lengkap tersedia di [GOOGLE_DRIVE_SETUP.md](GOOGLE_DRIVE_SETUP.md).
-
-### Backup dan Pemulihan
-
-File backup menggunakan nama `ini-pos-backup-YYYY-MM-DD.json`. Tekan **Lihat backup** untuk memuat daftar file dari Google Drive. Sebelum menekan **Pulihkan**, pastikan backup yang dipilih adalah versi yang benar karena data lokal akan digantikan oleh isi backup tersebut.
-
-Aktifkan **Backup otomatis** setelah akun terhubung jika ingin aplikasi mencoba mencadangkan perubahan data secara tertunda. Jika perangkat sedang offline, data lokal tetap aman dan backup dapat dilakukan kembali setelah koneksi tersedia.
-
-> Jangan membagikan OAuth Client Secret, access token, atau file backup kepada pihak lain. Fitur Google Drive belum wajib digunakan; Ini POS tetap berfungsi sebagai aplikasi POS offline tanpa konfigurasi cloud.
+### Cara Memulihkan Data (*Restore*):
+1. Buka menu **Pengaturan**, lalu pilih **Kelola Backup**.
+2. Tekan tombol **↑ Impor Cadangan**.
+3. Pilih file JSON cadangan yang sebelumnya telah Anda simpan di perangkat atau Google Drive.
+4. Konfirmasikan pemulihan untuk menggantikan data aktif dengan data dari cadangan tersebut.
 
 ---
 
