@@ -8,15 +8,15 @@ POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, t
 
 ## Tampilan aplikasi
 
-### Dashboard desktop
+### Tampilan Beranda (Desktop & Mobile)
 
-Beranda menampilkan ringkasan usaha yang praktis: identitas toko, status operasional offline, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan akses cepat ke transaksi, produk, serta stok. Navigasi utama tetap berada di bagian bawah.
+Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v1.9.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah selalu siap diakses di semua ukuran layar.
 
 ![Dashboard POS UMKM Rifaldo](docs/screenshots/dashboard.png)
 
-### Tampilan mobile
+### Tampilan Mobile
 
-Layout mobile dirancang untuk penggunaan kasir sehari-hari. Bottom navigation menyediakan akses cepat ke **Beranda, Kasir, Produk, Stok, Transaksi, dan Pengaturan**.
+Layout mobile dirancang untuk kenyamanan kasir harian dengan bilah navigasi bawah (*bottom navigation*) yang mencakup **Beranda, Kasir, Produk, Stok, Transaksi, dan Pengaturan**.
 
 ![Dashboard mobile POS UMKM Rifaldo](docs/screenshots/dashboard-mobile.png)
 
