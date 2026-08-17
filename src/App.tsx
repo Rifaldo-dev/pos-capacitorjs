@@ -124,7 +124,7 @@ function App() {
     }
   }
 
-  if (!state) return <div className="boot-screen"><div className="logo-mark">RF</div><h1>POS UMKM</h1><p>Menyiapkan kasir offline...</p></div>
+  if (!state) return <div className="boot-screen"><div className="logo-mark">IP</div><h1>Ini POS</h1><p>Menyiapkan kasir offline...</p></div>
 
   const activeProducts = state.products.filter((product) => product.isActive)
   const lowStock = activeProducts.filter((product) => product.stock <= product.minimumStock)
@@ -344,7 +344,7 @@ function App() {
   }
 
   const downloadBackup = () => {
-    const blob = new Blob([JSON.stringify(createBackup(state), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `pos-umkm-backup-${todayKey()}.json`; anchor.click(); URL.revokeObjectURL(url)
+    const blob = new Blob([JSON.stringify(createBackup(state), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ini-pos-backup-${todayKey()}.json`; anchor.click(); URL.revokeObjectURL(url)
     save({ ...state, settings: { ...state.settings, lastBackupAt: timestamp() } }, 'Backup berhasil dibuat')
   }
 
@@ -394,7 +394,7 @@ function App() {
     {selectedTransaction && <TransactionModal state={state} transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onVoid={() => voidTransaction(selectedTransaction)} onPrint={() => window.print()} onBluetoothPrint={() => printBluetoothReceipt(selectedTransaction)} onShare={() => shareReceipt(selectedTransaction)} />}
     {showBackup && <BackupModal state={state} onClose={() => setShowBackup(false)} onDownload={downloadBackup} onImport={() => importRef.current?.click()} />}
     <input ref={importRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importBackup} />
-    {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur POS UMKM." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
+    {showSeedConfirm && <ConfirmModal title="Gunakan data demo?" description="Data saat ini akan diganti dengan produk contoh untuk mencoba alur Ini POS." onClose={() => setShowSeedConfirm(false)} onConfirm={async () => { const seeded = await seedDemoData(); setState(seeded); setShowSeedConfirm(false); setToast('Data demo berhasil dimuat') }} />}
   </div>
 }
 
@@ -707,7 +707,7 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
         </div>
         <div className="settings-subpage-content">
           <div className="cloud-intro"><div className="cloud-icon">☁</div><div><strong>Backup aman di akun Google Anda</strong><p>Data disimpan sebagai file backup milik aplikasi. Penjualan tetap berjalan offline; internet hanya diperlukan saat sinkronisasi.</p></div></div>
-          <div className="settings-form-group"><label>OAuth Web Client ID</label><input value={localSettings.googleDriveClientId ?? ''} onChange={(event) => setLocalSettings({ ...localSettings, googleDriveClientId: event.target.value.trim() })} placeholder="123456789-abc.apps.googleusercontent.com" /><p className="settings-form-hint">Buat Client ID di Google Cloud Console. Jangan masukkan Client Secret ke aplikasi.</p></div>
+          <div className="settings-form-group"><label>Kunci Sinkronisasi (Web Client ID)</label><input value={localSettings.googleDriveClientId ?? ''} onChange={(event) => setLocalSettings({ ...localSettings, googleDriveClientId: event.target.value.trim() })} placeholder="123456789-abc.apps.googleusercontent.com" /><p className="settings-form-hint">Dapatkan Client ID dari Google Cloud Console. Lihat panduan di dokumentasi untuk cara mendapatkannya.</p></div>
           {placeholderClientId && <div className="cloud-warning">Client ID belum dikonfigurasi. Menu ini sudah siap, tetapi login Google belum dapat digunakan sampai Client ID dimasukkan.</div>}
           {driveUser || localSettings.googleDriveAccountEmail ? <div className="cloud-account"><div><span className="cloud-status-dot" />Terhubung sebagai <strong>{driveUser?.email || localSettings.googleDriveAccountEmail}</strong></div><button className="text-button" onClick={() => void disconnectDrive()}>Putuskan</button></div> : <button className="button secondary" onClick={() => void connectDrive()} disabled={driveLoading || placeholderClientId}>{driveLoading ? 'Memproses...' : 'Hubungkan akun Google'}</button>}
           {driveMessage && <div className="cloud-message">{driveMessage}</div>}
@@ -877,7 +877,7 @@ function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; on
           <div className="settings-row">
             <div className="settings-row-info">
               <span className="settings-row-label">Versi Aplikasi</span>
-              <span className="settings-row-value">2.3.0</span>
+              <span className="settings-row-value">2.4.0</span>
             </div>
           </div>
           <div className="settings-row">
@@ -962,7 +962,7 @@ function TransactionModal({ state, transaction, onClose, onVoid, onPrint, onBlue
   </Modal>
 }
 
-function BackupModal({ state, onClose, onDownload, onImport }: { state: PosState; onClose: () => void; onDownload: () => void; onImport: () => void }) { return <Modal title="Backup & restore" onClose={onClose}><div className="backup-card"><div className="backup-icon">⇄</div><div><h3>Data Anda tersimpan lokal</h3><p>Backup mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div><div className="backup-actions"><button className="button primary" onClick={onDownload}>↓ Download backup JSON</button><button className="button secondary" onClick={onImport}>↑ Import backup</button></div><div className="info-box">Restore akan mengganti data aktif setelah konfirmasi.</div></Modal> }
+function BackupModal({ state, onClose, onDownload, onImport }: { state: PosState; onClose: () => void; onDownload: () => void; onImport: () => void }) { return <Modal title="Kelola Cadangan Data" onClose={onClose}><div className="backup-card"><div className="backup-icon">⇄</div><div><h3>Data Anda tersimpan lokal</h3><p>Cadangan mencakup {state.products.length} produk, {state.transactions.length} transaksi, dan seluruh pengaturan toko.</p></div></div><div className="backup-actions"><button className="button primary" onClick={onDownload}>↓ Unduh Cadangan JSON</button><button className="button secondary" onClick={onImport}>↑ Impor Cadangan</button></div><div className="info-box">Pemulihan (Restore) akan mengganti data aktif setelah konfirmasi.</div></Modal> }
 function ConfirmModal({ title, description, onClose, onConfirm }: { title: string; description: string; onClose: () => void; onConfirm: () => void }) { return <Modal title={title} onClose={onClose}><p className="confirm-copy">{description}</p><div className="modal-actions"><button className="button secondary" onClick={onClose}>Batal</button><button className="button primary" onClick={onConfirm}>Lanjutkan</button></div></Modal> }
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="modal"><div className="modal-header"><h2>{title}</h2><button className="close-button" onClick={onClose}>×</button></div>{children}</div></div> }
 function Empty({ title, description, action, onAction }: { title: string; description: string; action?: string; onAction?: () => void }) { return <div className="empty-state"><div className="empty-icon">□</div><strong>{title}</strong><p>{description}</p>{action && onAction && <button className="button secondary" onClick={onAction}>{action}</button>}</div> }

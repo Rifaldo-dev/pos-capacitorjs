@@ -79,13 +79,32 @@ const demoTransactions: Transaction[] = [
 
 export const createEmptyState = (): PosState => ({
   version: DB_VERSION,
-  categories: [],
+  categories: [{ id: 'cat-umum', name: 'Umum', color: '#2457e6' }],
   products: [],
   customers: [],
   transactions: [],
   expenses: [],
   stockMovements: [],
-  settings: { storeName: 'Ini POS', storeLogo: '', storeAddress: 'Jl. Ahmad Yani No. 12, Bandung', storePhone: '081298765432', taxRate: 0, allowNegativeStock: false, theme: 'light', receiptFooter: 'Terima kasih atas kunjungan Anda!', autoPrintReceipt: false, bluetoothPrinterAddress: '', bluetoothPrinterName: '', bluetoothPaperWidth: 58, autoPrintBluetooth: false, googleDriveClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', googleDriveAccountEmail: '', googleDriveAutoBackup: false, googleDriveLastBackupAt: '', googleDriveBackupFileId: '' },
+  settings: { 
+    storeName: 'Ini POS', 
+    storeLogo: '', 
+    storeAddress: 'Alamat Toko Anda', 
+    storePhone: '-', 
+    taxRate: 0, 
+    allowNegativeStock: false, 
+    theme: 'light', 
+    receiptFooter: 'Terima kasih atas kunjungan Anda!', 
+    autoPrintReceipt: false, 
+    bluetoothPrinterAddress: '', 
+    bluetoothPrinterName: '', 
+    bluetoothPaperWidth: 58, 
+    autoPrintBluetooth: false, 
+    googleDriveClientId: '', 
+    googleDriveAccountEmail: '', 
+    googleDriveAutoBackup: false, 
+    googleDriveLastBackupAt: '', 
+    googleDriveBackupFileId: '' 
+  },
 })
 
 const normalizeState = (value: PosState): PosState => ({ ...createEmptyState(), ...value, settings: { ...createEmptyState().settings, ...value.settings } })
@@ -96,24 +115,10 @@ const createSeedState = (): PosState => ({
   products: demoProducts,
   transactions: demoTransactions,
   settings: {
-    storeName: 'Ini POS',
-    storeLogo: '',
+    ...createEmptyState().settings,
+    storeName: 'Warung Contoh',
     storeAddress: 'Jl. Ahmad Yani No. 12, Bandung',
     storePhone: '081298765432',
-    taxRate: 0,
-    allowNegativeStock: false,
-    theme: 'light',
-    receiptFooter: 'Terima kasih atas kunjungan Anda!',
-    autoPrintReceipt: false,
-    bluetoothPrinterAddress: '',
-    bluetoothPrinterName: '',
-    bluetoothPaperWidth: 58,
-    autoPrintBluetooth: false,
-    googleDriveClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-    googleDriveAccountEmail: '',
-    googleDriveAutoBackup: false,
-    googleDriveLastBackupAt: '',
-    googleDriveBackupFileId: '',
   },
 })
 
@@ -166,7 +171,7 @@ export async function initializeStore(): Promise<PosState> {
   if (db) {
     const result = await db.query('SELECT value FROM app_state WHERE key = ?', ['pos_state'])
     if (result.values?.[0]?.value) return normalizeState(JSON.parse(result.values[0].value) as PosState)
-    const initial = createSeedState()
+    const initial = createEmptyState()
     await persistState(initial)
     return initial
   }
@@ -174,7 +179,7 @@ export async function initializeStore(): Promise<PosState> {
   if (stored) {
     try { return normalizeState(JSON.parse(stored) as PosState) } catch { localStorage.removeItem(STORAGE_KEY) }
   }
-  const initial = createSeedState()
+  const initial = createEmptyState()
   localStorage.setItem(STORAGE_KEY, JSON.stringify(initial))
   return initial
 }
