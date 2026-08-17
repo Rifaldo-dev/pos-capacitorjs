@@ -8,6 +8,8 @@ const DB_VERSION = 1
 export const timestamp = () => new Date().toISOString()
 export const newId = (prefix: string) => `${prefix}_${crypto.randomUUID()}`
 
+const demoProductImage = (label: string, background: string, accent: string) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480"><rect width="640" height="480" rx="52" fill="${background}"/><circle cx="520" cy="90" r="120" fill="${accent}" opacity=".18"/><rect x="180" y="100" width="280" height="270" rx="28" fill="white" opacity=".94"/><path d="M230 165h180M230 205h140" stroke="${accent}" stroke-width="18" stroke-linecap="round" opacity=".7"/><text x="320" y="305" text-anchor="middle" font-family="Arial,sans-serif" font-size="54" font-weight="700" fill="${accent}">${label}</text></svg>`)}`
+
 const demoCategories: Category[] = [
   { id: 'cat-food', name: 'Makanan', color: '#f59e0b' },
   { id: 'cat-drink', name: 'Minuman', color: '#22c55e' },
@@ -15,11 +17,11 @@ const demoCategories: Category[] = [
 ]
 
 const demoProducts: Product[] = [
-  { id: 'prod-indomie', sku: 'MKN-001', barcode: '8992388101001', name: 'Indomie Goreng', categoryId: 'cat-food', purchasePrice: 2500, sellingPrice: 3500, stock: 48, minimumStock: 10, unit: 'pcs', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
-  { id: 'prod-aqua', sku: 'MNM-001', barcode: '8992775101001', name: 'Aqua 600ml', categoryId: 'cat-drink', purchasePrice: 2500, sellingPrice: 4000, stock: 36, minimumStock: 12, unit: 'botol', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
-  { id: 'prod-teh', sku: 'MNM-002', barcode: '8998866101001', name: 'Teh Botol Sosro', categoryId: 'cat-drink', purchasePrice: 3500, sellingPrice: 5000, stock: 22, minimumStock: 8, unit: 'botol', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
-  { id: 'prod-kopi', sku: 'MKN-002', barcode: '8991002101001', name: 'Kopi Sachet', categoryId: 'cat-food', purchasePrice: 1200, sellingPrice: 2000, stock: 8, minimumStock: 10, unit: 'pcs', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
-  { id: 'prod-roti', sku: 'MKN-003', barcode: '8999999101001', name: 'Roti Tawar', categoryId: 'cat-food', purchasePrice: 9000, sellingPrice: 12000, stock: 3, minimumStock: 4, unit: 'bungkus', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
+  { id: 'prod-indomie', sku: 'MKN-001', barcode: '8992388101001', name: 'Indomie Goreng', categoryId: 'cat-food', image: demoProductImage('MIE', '#FFF1E9', '#EA6A2D'), purchasePrice: 2500, sellingPrice: 3500, stock: 48, minimumStock: 10, unit: 'pcs', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
+  { id: 'prod-aqua', sku: 'MNM-001', barcode: '8992775101001', name: 'Aqua 600ml', categoryId: 'cat-drink', image: demoProductImage('AQUA', '#EAF2FF', '#2457E6'), purchasePrice: 2500, sellingPrice: 4000, stock: 36, minimumStock: 12, unit: 'botol', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
+  { id: 'prod-teh', sku: 'MNM-002', barcode: '8998866101001', name: 'Teh Botol Sosro', categoryId: 'cat-drink', image: demoProductImage('TEH', '#EAF8F0', '#16865A'), purchasePrice: 3500, sellingPrice: 5000, stock: 22, minimumStock: 8, unit: 'botol', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
+  { id: 'prod-kopi', sku: 'MKN-002', barcode: '8991002101001', name: 'Kopi Sachet', categoryId: 'cat-food', image: demoProductImage('KOPI', '#F4EEFF', '#7953C6'), purchasePrice: 1200, sellingPrice: 2000, stock: 8, minimumStock: 10, unit: 'pcs', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
+  { id: 'prod-roti', sku: 'MKN-003', barcode: '8999999101001', name: 'Roti Tawar', categoryId: 'cat-food', image: demoProductImage('ROTI', '#FFF8E7', '#B47716'), purchasePrice: 9000, sellingPrice: 12000, stock: 3, minimumStock: 4, unit: 'bungkus', isActive: true, createdAt: timestamp(), updatedAt: timestamp() },
 ]
 
 const demoTransactions: Transaction[] = [

@@ -13,6 +13,7 @@ export interface Product {
   barcode: string
   name: string
   categoryId: string
+  image?: string
   purchasePrice: number
   sellingPrice: number
   stock: number
@@ -33,6 +34,7 @@ export interface CartItem {
   productId: string
   name: string
   sku: string
+  image?: string
   price: number
   cost: number
   quantity: number
