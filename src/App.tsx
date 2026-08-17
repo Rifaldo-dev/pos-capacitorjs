@@ -4,6 +4,7 @@ import { createBackup, initializeStore, newId, parseBackup, persistState, seedDe
 import { NativeBarcodeScanner } from './nativeScanner'
 import { connectBluetoothPrinter, enableBluetooth, isBluetoothEnabled, listPairedPrinters, type BluetoothDevice } from './bluetoothPrinter'
 import { printTransactionBluetooth } from './thermalPrinter'
+import { exportTransactionsExcel, exportTransactionsPDF } from './reports'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
 import type { CartItem, Page, PaymentMethod, PosState, Product, StoreSettings, Transaction } from './types'
 import './styles.css'
@@ -396,7 +397,67 @@ function Products({ state, products, search, setSearch, onAdd, onScanAdd, scanne
   const runAction = (action: () => void) => { closeMenu(); action() }
   return <section className="page-body"><div className="toolbar"><div className="search-box"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari produk, SKU, barcode..." /></div><div className="toolbar-actions"><button className="button secondary scan-add-button" onClick={onScanAdd} disabled={scannerBusy}>{scannerBusy ? 'Membuka kamera...' : '▣ Scan barcode'}</button><button className="button primary" onClick={onAdd}>＋ Tambah produk</button></div></div><div className="panel table-panel"><div className="table-meta"><div><h3>Daftar produk</h3><p>{products.filter((product) => product.isActive).length} aktif · {products.filter((product) => !product.isActive).length} nonaktif · {state.products.length} total</p></div><span className="filter-chip">Kelola katalog</span></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>SKU / Barcode</th><th>Kategori</th><th>Harga jual</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{products.map((product) => <tr className={product.isActive ? '' : 'inactive-row'} key={product.id}><td><div className="table-product"><ProductVisual product={product} className="product-avatar" /><strong>{product.name}</strong></div></td><td><span className="mono">{product.sku}</span><small>{product.barcode || 'Tanpa barcode'}</small></td><td><span className="category-chip">{state.categories.find((category) => category.id === product.categoryId)?.name ?? 'Umum'}</span></td><td><strong>{formatRupiah(product.sellingPrice)}</strong><small>Modal {formatRupiah(product.purchasePrice)}</small></td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock} {product.unit}</span><small>Min. {product.minimumStock} {product.unit}</small></td><td><span className={product.isActive ? 'status-badge completed' : 'status-badge voided'}>{product.isActive ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="table-actions"><button className="ellipsis-button" type="button" aria-label={`Buka aksi ${product.name}`} aria-expanded={openMenuId === product.id} onClick={(event) => { event.stopPropagation(); setOpenMenuId(openMenuId === product.id ? null : product.id) }}>⋮</button>{openMenuId === product.id && <div className="action-menu" role="menu"><button type="button" role="menuitem" onClick={() => runAction(() => onEdit(product))}>Edit produk</button><button type="button" role="menuitem" onClick={() => runAction(() => onAdjust(product))}>Atur stok</button><button type="button" role="menuitem" onClick={() => runAction(() => onToggleActive(product))}>{product.isActive ? 'Nonaktifkan' : 'Aktifkan'}</button><button type="button" role="menuitem" className="menu-danger" onClick={() => runAction(() => onDelete(product))}>Hapus produk</button></div>}</div></td></tr>)}</tbody></table>{products.length === 0 && <Empty title="Belum ada produk" description="Tambahkan produk pertama untuk mulai berjualan." action="＋ Tambah produk" onAction={onAdd} />}</div></div></section>
 }
-function Transactions({ state, onSelect }: { state: PosState; onSelect: (transaction: Transaction) => void }) { return <section className="page-body"><div className="toolbar"><div><h3 className="toolbar-title">Semua transaksi</h3><p className="muted">Riwayat tersimpan di perangkat ini</p></div><span className="filter-chip">Tap transaksi untuk detail</span></div><div className="panel table-panel"><div className="table-scroll"><table><thead><tr><th>Invoice</th><th>Waktu</th><th>Item</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody>{state.transactions.map((transaction) => <tr className="clickable" key={transaction.id} onClick={() => onSelect(transaction)}><td><strong className="mono">{transaction.invoiceNumber}</strong></td><td>{formatDate(transaction.createdAt)}</td><td>{transaction.items.reduce((sum, item) => sum + item.quantity, 0)} item</td><td><span className="category-chip">{transaction.paymentMethod}</span></td><td><strong>{formatRupiah(transaction.total)}</strong></td><td><span className={`status-badge ${transaction.status}`}>{transaction.status === 'completed' ? 'Selesai' : transaction.status === 'voided' ? 'Void' : 'Refund'}</span></td></tr>)}</tbody></table>{state.transactions.length === 0 && <Empty title="Belum ada transaksi" description="Transaksi yang selesai akan muncul di sini." />}</div></div></section> }
+function Transactions({ state, onSelect }: { state: PosState; onSelect: (transaction: Transaction) => void }) {
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const filtered = state.transactions.filter((t) => {
+    if (!startDate && !endDate) return true
+    const d = t.createdAt.slice(0, 10)
+    if (startDate && d < startDate) return false
+    if (endDate && d > endDate) return false
+    return true
+  })
+  return <section className="page-body">
+    <div className="toolbar">
+      <div>
+        <h3 className="toolbar-title">Semua transaksi & Laporan</h3>
+        <p className="muted">Riwayat tersimpan di perangkat · Unduh laporan Excel / PDF</p>
+      </div>
+      <div className="toolbar-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input" title="Dari tanggal" />
+        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input" title="Sampai tanggal" />
+        <button className="button secondary" onClick={() => exportTransactionsExcel(state, startDate || undefined, endDate || undefined)}>📊 Export Excel</button>
+        <button className="button primary" onClick={() => exportTransactionsPDF(state, startDate || undefined, endDate || undefined)}>📄 Export PDF</button>
+      </div>
+    </div>
+    <div className="panel table-panel">
+      <div className="table-meta">
+        <div>
+          <h3>Riwayat penjualan</h3>
+          <p>Menampilkan {filtered.length} dari {state.transactions.length} transaksi</p>
+        </div>
+        <span className="filter-chip">Tap transaksi untuk detail</span>
+      </div>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Waktu</th>
+              <th>Item</th>
+              <th>Pembayaran</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((transaction) => (
+              <tr className="clickable" key={transaction.id} onClick={() => onSelect(transaction)}>
+                <td><strong className="mono">{transaction.invoiceNumber}</strong></td>
+                <td>{formatDate(transaction.createdAt)}</td>
+                <td>{transaction.items.reduce((sum, item) => sum + item.quantity, 0)} item</td>
+                <td><span className="category-chip">{transaction.paymentMethod}</span></td>
+                <td><strong>{formatRupiah(transaction.total)}</strong></td>
+                <td><span className={`status-badge ${transaction.status}`}>{transaction.status === 'completed' ? 'Selesai' : transaction.status === 'voided' ? 'Void' : 'Refund'}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <Empty title="Tidak ada transaksi" description="Tidak ada transaksi pada rentang tanggal tersebut." />}
+      </div>
+    </div>
+  </section>
+}
 function Inventory({ state, lowStock, onEdit, onAdjust }: { state: PosState; lowStock: Product[]; onEdit: (product: Product) => void; onAdjust: (product: Product) => void }) { return <section className="page-body"><div className="metric-grid compact"><Metric label="Total produk" value={String(state.products.length)} detail="Dalam katalog" tone="blue" /><Metric label="Stok menipis" value={String(lowStock.length)} detail="Di bawah minimum" tone="orange" /><Metric label="Produk habis" value={String(state.products.filter((p) => p.stock === 0).length)} detail="Perlu restock" tone="purple" /></div><div className="panel table-panel"><div className="table-meta"><div><h3>Kontrol stok</h3><p>Tambah, kurangi, atau set stok baru. Semua perubahan tercatat.</p></div></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>Stok saat ini</th><th>Minimum</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{state.products.map((product) => <tr key={product.id}><td><div className="table-product"><ProductVisual product={product} className="product-avatar" /><strong>{product.name}</strong></div></td><td><strong>{product.stock} {product.unit}</strong></td><td>{product.minimumStock} {product.unit}</td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock === 0 ? 'Habis' : product.stock <= product.minimumStock ? 'Stok rendah' : 'Aman'}</span></td><td><div className="table-actions"><button className="small-button" onClick={() => onAdjust(product)}>Atur stok</button><button className="small-button" onClick={() => onEdit(product)}>Edit</button></div></td></tr>)}</tbody></table></div></div><div className="panel movement-panel"><div className="panel-heading"><div><h3>Riwayat perubahan stok</h3><p>Audit restock, penjualan, refund, dan penyesuaian.</p></div></div><div className="movement-list">{state.stockMovements.slice(0, 12).map((movement) => { const product = state.products.find((item) => item.id === movement.productId); return <div className="movement-row" key={movement.id}><span className={`movement-dot ${movement.type}`} /> <div><strong>{product?.name ?? 'Produk dihapus'}</strong><small>{movement.note} · {formatDate(movement.createdAt)}</small></div><b>{movement.type === 'sale' || movement.type === 'refund' ? `${movement.type === 'sale' ? '-' : '+'}${movement.quantity}` : `${movement.stockBefore} → ${movement.stockAfter}`}</b></div> })}{state.stockMovements.length === 0 && <Empty title="Belum ada perubahan stok" description="Aktivitas stok akan tercatat di sini." />}</div></div></section> }
 
 type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'printer' | 'appearance' | 'security' | 'data'

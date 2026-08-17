@@ -71,7 +71,8 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Scan kamera | Scanner native Android (CameraX + ML Kit) 100% offline, mendukung senter, multi-scan, berbagai format barcode/QR, dan alur pendaftaran produk otomatis. |
 | Produk | CRUD katalog lengkap dengan **Foto Produk**, SKU/barcode, kategori, harga beli/jual, stok, dan menu aksi ringkas (⋮). |
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
-| Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, dan **Cetak Bluetooth Thermal**. |
+| Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
+| Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (.xlsx) atau PDF profesional secara offline. |
 | Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
 | Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
 | Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |

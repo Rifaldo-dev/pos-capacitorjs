@@ -1,6 +1,6 @@
 # Panduan Pengguna POS UMKM Rifaldo
 
-Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **POS UMKM Rifaldo** (versi `2.2.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
+Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **POS UMKM Rifaldo** (versi `2.3.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
 
 > **Package Android:** `pos.rifaldo`  
 > **Repository GitHub:** [Rifaldo-dev/pos-capacitorjs](https://github.com/Rifaldo-dev/pos-capacitorjs)
@@ -60,7 +60,19 @@ Menu **Kasir** adalah pusat operasional penjualan harian. Versi `1.7.0` memperke
 
 ---
 
-## 5. Kontrol Persediaan (Stok) & Riwayat Perubahan
+## 5. Ekspor Laporan Penjualan (Excel & PDF)
+
+Aplikasi kini mendukung ekspor data transaksi untuk mempermudah pembukuan dan analisis bisnis:
+
+1.  Buka menu **Transaksi** di navigasi bawah.
+2.  Gunakan pemilih tanggal (**Dari** dan **Sampai**) untuk memfilter transaksi yang ingin Anda masukkan ke dalam laporan.
+3.  Tekan tombol **📊 Export Excel** untuk mengunduh file `.xlsx` yang berisi riwayat transaksi dan ringkasan produk terjual.
+4.  Tekan tombol **📄 Export PDF** untuk menghasilkan dokumen laporan penjualan profesional yang siap dicetak atau disimpan sebagai arsip.
+5.  Fitur ini bekerja secara **100% offline** dan tidak memerlukan koneksi internet.
+
+---
+
+## 6. Kontrol Persediaan (Stok) & Riwayat Perubahan
 
 Menu **Stok** memberikan transparansi penuh terhadap pergerakan barang di toko:
 
