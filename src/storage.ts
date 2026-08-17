@@ -85,7 +85,7 @@ export const createEmptyState = (): PosState => ({
   transactions: [],
   expenses: [],
   stockMovements: [],
-  settings: { storeName: 'Ini POS', storeLogo: '', storeAddress: 'Jl. Ahmad Yani No. 12, Bandung', storePhone: '081298765432', taxRate: 0, allowNegativeStock: false, theme: 'light', receiptFooter: 'Terima kasih atas kunjungan Anda!', autoPrintReceipt: false, bluetoothPrinterAddress: '', bluetoothPrinterName: '', bluetoothPaperWidth: 58, autoPrintBluetooth: false },
+  settings: { storeName: 'Ini POS', storeLogo: '', storeAddress: 'Jl. Ahmad Yani No. 12, Bandung', storePhone: '081298765432', taxRate: 0, allowNegativeStock: false, theme: 'light', receiptFooter: 'Terima kasih atas kunjungan Anda!', autoPrintReceipt: false, bluetoothPrinterAddress: '', bluetoothPrinterName: '', bluetoothPaperWidth: 58, autoPrintBluetooth: false, googleDriveClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', googleDriveAccountEmail: '', googleDriveAutoBackup: false, googleDriveLastBackupAt: '', googleDriveBackupFileId: '' },
 })
 
 const normalizeState = (value: PosState): PosState => ({ ...createEmptyState(), ...value, settings: { ...createEmptyState().settings, ...value.settings } })
@@ -109,6 +109,11 @@ const createSeedState = (): PosState => ({
     bluetoothPrinterName: '',
     bluetoothPaperWidth: 58,
     autoPrintBluetooth: false,
+    googleDriveClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+    googleDriveAccountEmail: '',
+    googleDriveAutoBackup: false,
+    googleDriveLastBackupAt: '',
+    googleDriveBackupFileId: '',
   },
 })
 

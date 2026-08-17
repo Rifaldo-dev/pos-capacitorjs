@@ -315,3 +315,32 @@ input:checked + .slider:before { transform: translateX(20px); }
 .bottom-nav button.active span.nav-icon { color: white; background: var(--primary); box-shadow: 0 5px 12px rgba(234,106,45,.22); }
 .bottom-nav button.active span.nav-icon svg { stroke-width: 2.1; }
 @media (max-width: 600px) { .bottom-nav button span.nav-icon { width: 29px; height: 26px; } .bottom-nav button span.nav-icon svg { width: 18px; height: 18px; } }
+
+/* Google Drive sync */
+.cloud-intro {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  margin-bottom: 18px;
+  border: 1px solid #dbe5ff;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f5f8ff, #ffffff);
+}
+.cloud-icon { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; color: #2457e6; font-size: 24px; border-radius: 12px; background: #e8efff; }
+.cloud-intro strong { display: block; margin-bottom: 4px; color: #16213d; }
+.cloud-intro p { margin: 0; color: #64708a; font-size: 13px; line-height: 1.55; }
+.cloud-warning, .cloud-message { margin: 12px 0; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+.cloud-warning { color: #7a4c00; border: 1px solid #f3d38a; background: #fff8e7; }
+.cloud-message { color: #2457e6; border: 1px solid #cbd9ff; background: #f1f5ff; }
+.cloud-account { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0; padding: 12px 14px; border: 1px solid #d8eadf; border-radius: 12px; color: #245936; background: #f1fbf4; font-size: 13px; }
+.cloud-status-dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #2eae62; }
+.cloud-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.cloud-auto-group { margin-top: 8px; border-top: 0; }
+.cloud-backup-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid #edf0f6; }
+.cloud-backup-list h3 { margin: 0 0 10px; color: #27314d; font-size: 15px; }
+.cloud-backup-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #edf0f6; }
+.cloud-backup-row strong, .cloud-backup-row small { display: block; }
+.cloud-backup-row strong { color: #27314d; font-size: 13px; word-break: break-word; }
+.cloud-backup-row small { margin-top: 4px; color: #7b8499; font-size: 11px; }
+@media (max-width: 420px) { .cloud-actions { grid-template-columns: 1fr; } }

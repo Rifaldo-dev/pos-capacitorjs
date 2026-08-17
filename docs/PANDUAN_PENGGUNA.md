@@ -100,3 +100,28 @@ Karena seluruh data bersifat mandiri di perangkat Anda, disarankan untuk rutin m
 [2] Barcode-first product registration workflow. [POS UMKM GitHub Repository](https://github.com/Rifaldo-dev/pos-capacitorjs)  
 [3] Native multi-scan and barcode accumulation pattern. [Capacitor Documentation](https://capacitorjs.com/)  
 [4] CameraX flash and torch control. [Android CameraX API Documentation](https://developer.android.com/training/camerax)
+
+---
+
+## 10. Sinkronisasi Google Drive
+
+Fitur ini adalah backup cloud opsional untuk melindungi data toko ketika perangkat rusak, hilang, atau diganti. Seluruh transaksi tetap dapat dilakukan secara offline; internet hanya diperlukan ketika login Google, backup, melihat daftar backup, atau memulihkan data.
+
+### Konfigurasi pertama kali
+
+1. Buat project Google Cloud, aktifkan **Google Drive API**, dan siapkan OAuth consent screen.
+2. Buat OAuth Client ID Android dengan package `pos.rifaldo` serta SHA-1 signing certificate aplikasi.
+3. Buat OAuth Client ID Web, lalu salin Client ID yang berakhiran `.apps.googleusercontent.com`.
+4. Buka **Pengaturan → Sinkronisasi Google Drive** di Ini POS.
+5. Masukkan Web Client ID, simpan, lalu tekan **Hubungkan akun Google**.
+6. Setelah login berhasil, tekan **Backup sekarang** untuk membuat backup pertama.
+
+Panduan konfigurasi Google Cloud yang lebih lengkap tersedia di [GOOGLE_DRIVE_SETUP.md](GOOGLE_DRIVE_SETUP.md).
+
+### Backup dan pemulihan
+
+File backup menggunakan nama `ini-pos-backup-YYYY-MM-DD.json`. Tekan **Lihat backup** untuk memuat daftar file dari Google Drive. Sebelum menekan **Pulihkan**, pastikan backup yang dipilih adalah versi yang benar karena data lokal akan digantikan oleh isi backup tersebut.
+
+Aktifkan **Backup otomatis** setelah akun terhubung jika ingin aplikasi mencoba mencadangkan perubahan data secara tertunda. Jika perangkat sedang offline, data lokal tetap aman dan backup dapat dilakukan kembali setelah koneksi tersedia.
+
+> Jangan membagikan OAuth Client Secret, access token, atau file backup kepada pihak lain. Fitur Google Drive belum wajib digunakan; Ini POS tetap berfungsi sebagai aplikasi POS offline tanpa konfigurasi cloud.

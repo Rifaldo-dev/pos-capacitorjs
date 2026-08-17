@@ -220,3 +220,9 @@ Scanner kini mengikuti alur **Klik Scan banyak produk → Native Camera Scanner 
 ## Keterbatasan saat ini
 
 Versi ini belum menyediakan modul supplier/customer/purchasing/expenses yang lengkap, laporan custom range yang mendalam, ekspor data ke Excel/CSV, PIN app lock, atau dark mode native. Integrasi printer Bluetooth saat ini mendukung protokol Bluetooth Classic SPP yang umum digunakan oleh printer thermal thermal 58mm/80mm; printer berbasis BLE murni mungkin memerlukan pembaruan plugin di masa mendatang.
+
+## Sinkronisasi Google Drive
+
+Ini POS menyediakan backup cloud opsional ke akun Google pengguna. Dari **Pengaturan → Sinkronisasi Google Drive**, pengguna dapat menghubungkan akun Google, membuat backup JSON, melihat daftar backup, memulihkan data, dan mengaktifkan backup otomatis. Operasional kasir, scanner, dan penyimpanan lokal tetap berjalan tanpa internet; koneksi hanya diperlukan saat proses sinkronisasi.
+
+Sebelum digunakan, buat OAuth Client ID di Google Cloud Console dan masukkan Client ID tersebut di aplikasi. Panduan lengkap tersedia di [docs/GOOGLE_DRIVE_SETUP.md](docs/GOOGLE_DRIVE_SETUP.md).
