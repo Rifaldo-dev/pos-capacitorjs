@@ -13,7 +13,15 @@ POS UMKM Rifaldo tidak memerlukan sambungan internet, server awan, atau langgana
 
 ---
 
-## 2. Pengaturan Awal Toko
+## 2. Beranda: Ringkasan Usaha
+
+Beranda dirancang sebagai dashboard operasional yang ringkas, bukan halaman promosi. Bagian atas menampilkan nama toko, status aktivitas hari ini, dan tombol **Transaksi baru**. Kartu ringkasan memperlihatkan penjualan hari ini, estimasi laba kotor, produk terlaris, serta jumlah produk yang stoknya menipis.
+
+Gunakan panel **Transaksi terbaru** untuk melihat penjualan terakhir dan membuka seluruh riwayat transaksi. Panel **Perlu perhatian** menampilkan produk yang perlu di-restock. Bagian **Akses cepat** menyediakan jalan singkat menuju transaksi baru, katalog produk, dan penambahan stok.
+
+---
+
+## 3. Pengaturan Awal Toko
 
 Sebelum mulai melayani transaksi, sesuaikan identitas toko agar struk dan laporan sesuai dengan usaha Anda:
 

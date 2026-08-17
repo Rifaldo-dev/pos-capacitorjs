@@ -10,7 +10,7 @@ POS UMKM Rifaldo adalah aplikasi **Point of Sale offline-first** untuk warung, t
 
 ### Dashboard desktop
 
-Dashboard menampilkan status offline, identitas toko, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. Navigasi utama tetap berada di bagian bawah.
+Beranda menampilkan ringkasan usaha yang praktis: identitas toko, status operasional offline, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan akses cepat ke transaksi, produk, serta stok. Navigasi utama tetap berada di bagian bawah.
 
 ![Dashboard POS UMKM Rifaldo](docs/screenshots/dashboard.png)
 
@@ -66,7 +66,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 
 | Area | Kemampuan |
 |---|---|
-| Dashboard | Ringkasan penjualan, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. |
+| Dashboard | Ringkasan usaha yang profesional dengan status operasional, penjualan hari ini, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan akses cepat. |
 | Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
 | Scan kamera | Scanner native Android melalui Capacitor Plugin/Bridge dengan CameraX dan Google ML Kit bundled; berjalan 100% offline, mendukung senter, multi-scan di Kasir, EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF, serta QR Code, lalu mencari produk lokal atau membuka form barcode-first. |
 | Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. Aksi produk diringkas dalam menu tiga titik (⋮). |
