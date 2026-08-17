@@ -1,6 +1,6 @@
-# Panduan Pengguna Ini POS
+# Panduan Pengguna Ini POS (v2.4.0)
 
-Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **Ini POS** (versi `2.3.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
+Dokumen ini adalah panduan operasional lengkap untuk pemilik warung, kios, toko kelontong, dan usaha mikro kecil menengah (UMKM) yang menggunakan aplikasi **Ini POS** (versi `2.4.0`). Aplikasi ini dirancang bekerja secara **100% offline** di perangkat Android menggunakan database lokal SQLite [1].
 
 > **Package Android:** `pos.rifaldo`  
 > **Repository GitHub:** [Rifaldo-dev/pos-capacitorjs](https://github.com/Rifaldo-dev/pos-capacitorjs)
@@ -29,11 +29,11 @@ Sebelum mulai melayani transaksi, sesuaikan identitas toko agar struk dan lapora
 2. Masukkan nama toko, alamat lengkap, dan nomor telepon yang aktif.
 3. Atur persentase pajak (jika ada) dan teks catatan penutup pada struk (Footer).
 4. Unggah logo toko dalam format gambar standar (PNG/JPG). Logo ini akan tampil di bagian atas struk transaksi dan laporan.
-5. **Printer Bluetooth**: Pilih menu **Printer Bluetooth** untuk menghubungkan aplikasi dengan printer thermal thermal Bluetooth Anda. Tekan **Cari perangkat berpasangan**, pilih printer dari daftar, tentukan lebar kertas (58mm atau 80mm), dan aktifkan **Cetak Bluetooth otomatis** jika ingin struk tercetak langsung setiap transaksi selesai. Pastikan printer sudah dipasangkan (*paired*) melalui pengaturan Bluetooth Android terlebih dahulu.
+5. **Printer Bluetooth**: Pilih menu **Printer Bluetooth** untuk menghubungkan aplikasi dengan printer thermal Bluetooth Anda. Tekan **Cari perangkat berpasangan**, pilih printer dari daftar, tentukan lebar kertas (58mm atau 80mm), dan aktifkan **Cetak Bluetooth otomatis** jika ingin struk tercetak langsung setiap transaksi selesai. Pastikan printer sudah dipasangkan (*paired*) melalui pengaturan Bluetooth Android terlebih dahulu.
 
 ---
 
-## 3. Manajemen Katalog Produk & Barcode-First
+## 4. Manajemen Katalog Produk & Barcode-First
 
 Pengelolaan produk dirancang agar pemilik toko dapat mendata barang dengan cepat:
 
@@ -44,9 +44,9 @@ Pengelolaan produk dirancang agar pemilik toko dapat mendata barang dengan cepat
 
 ---
 
-## 4. Kasir Pintar dengan Multi-Scan & Senter
+## 5. Kasir Pintar dengan Multi-Scan & Senter
 
-Menu **Kasir** adalah pusat operasional penjualan harian. Versi `1.7.0` memperkenalkan fitur **Multi-Scan** dan kontrol **Senter (Flashlight)** yang sangat membantu warung atau toko dengan banyak barang belanjaan pembeli [3].
+Menu **Kasir** adalah pusat operasional penjualan harian. Fitur **Multi-Scan** dan kontrol **Senter (Flashlight)** sangat membantu warung atau toko dengan banyak barang belanjaan pembeli [3].
 
 ### Cara Menggunakan Kasir & Multi-Scan:
 
@@ -60,19 +60,19 @@ Menu **Kasir** adalah pusat operasional penjualan harian. Versi `1.7.0` memperke
 
 ---
 
-## 5. Ekspor Laporan Penjualan (Excel & PDF)
+## 6. Ekspor Laporan Penjualan (Excel & PDF)
 
 Aplikasi kini mendukung ekspor data transaksi untuk mempermudah pembukuan dan analisis bisnis:
 
-1.  Buka menu **Transaksi** di navigasi bawah.
-2.  Gunakan pemilih tanggal (**Dari** dan **Sampai**) untuk memfilter transaksi yang ingin Anda masukkan ke dalam laporan.
-3.  Tekan tombol **📊 Export Excel** untuk mengunduh file `.xlsx` yang berisi riwayat transaksi dan ringkasan produk terjual.
-4.  Tekan tombol **📄 Export PDF** untuk menghasilkan dokumen laporan penjualan profesional yang siap dicetak atau disimpan sebagai arsip.
-5.  Fitur ini bekerja secara **100% offline** dan tidak memerlukan koneksi internet.
+1. Buka menu **Transaksi** di navigasi bawah.
+2. Gunakan pemilih tanggal (**Dari** dan **Sampai**) untuk memfilter transaksi yang ingin Anda masukkan ke dalam laporan.
+3. Tekan tombol **📊 Export Excel** untuk mengunduh file `.xlsx` yang berisi riwayat transaksi dan ringkasan produk terjual.
+4. Tekan tombol **📄 Export PDF** untuk menghasilkan dokumen laporan penjualan profesional yang siap dicetak atau disimpan sebagai arsip.
+5. Fitur ini bekerja secara **100% offline** dan tidak memerlukan koneksi internet.
 
 ---
 
-## 6. Kontrol Persediaan (Stok) & Riwayat Perubahan
+## 7. Kontrol Persediaan (Stok) & Riwayat Perubahan
 
 Menu **Stok** memberikan transparansi penuh terhadap pergerakan barang di toko:
 
@@ -84,7 +84,7 @@ Menu **Stok** memberikan transparansi penuh terhadap pergerakan barang di toko:
 
 ---
 
-## 6. Backup, Restore, & Keamanan Data
+## 8. Backup, Restore, & Keamanan Data Lokal
 
 Karena seluruh data bersifat mandiri di perangkat Anda, disarankan untuk rutin melakukan backup:
 
@@ -94,20 +94,11 @@ Karena seluruh data bersifat mandiri di perangkat Anda, disarankan untuk rutin m
 
 ---
 
-## Referensi
-
-[1] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)  
-[2] Barcode-first product registration workflow. [POS UMKM GitHub Repository](https://github.com/Rifaldo-dev/pos-capacitorjs)  
-[3] Native multi-scan and barcode accumulation pattern. [Capacitor Documentation](https://capacitorjs.com/)  
-[4] CameraX flash and torch control. [Android CameraX API Documentation](https://developer.android.com/training/camerax)
-
----
-
-## 10. Sinkronisasi Google Drive
+## 9. Sinkronisasi Google Drive (Cloud Backup Opsional)
 
 Fitur ini adalah backup cloud opsional untuk melindungi data toko ketika perangkat rusak, hilang, atau diganti. Seluruh transaksi tetap dapat dilakukan secara offline; internet hanya diperlukan ketika login Google, backup, melihat daftar backup, atau memulihkan data.
 
-### Konfigurasi pertama kali
+### Konfigurasi Pertama Kali
 
 1. Buat project Google Cloud, aktifkan **Google Drive API**, dan siapkan OAuth consent screen.
 2. Buat OAuth Client ID Android dengan package `pos.rifaldo` serta SHA-1 signing certificate aplikasi.
@@ -118,10 +109,19 @@ Fitur ini adalah backup cloud opsional untuk melindungi data toko ketika perangk
 
 Panduan konfigurasi Google Cloud yang lebih lengkap tersedia di [GOOGLE_DRIVE_SETUP.md](GOOGLE_DRIVE_SETUP.md).
 
-### Backup dan pemulihan
+### Backup dan Pemulihan
 
 File backup menggunakan nama `ini-pos-backup-YYYY-MM-DD.json`. Tekan **Lihat backup** untuk memuat daftar file dari Google Drive. Sebelum menekan **Pulihkan**, pastikan backup yang dipilih adalah versi yang benar karena data lokal akan digantikan oleh isi backup tersebut.
 
 Aktifkan **Backup otomatis** setelah akun terhubung jika ingin aplikasi mencoba mencadangkan perubahan data secara tertunda. Jika perangkat sedang offline, data lokal tetap aman dan backup dapat dilakukan kembali setelah koneksi tersedia.
 
 > Jangan membagikan OAuth Client Secret, access token, atau file backup kepada pihak lain. Fitur Google Drive belum wajib digunakan; Ini POS tetap berfungsi sebagai aplikasi POS offline tanpa konfigurasi cloud.
+
+---
+
+## Referensi
+
+[1] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)  
+[2] Barcode-first product registration workflow. [POS UMKM GitHub Repository](https://github.com/Rifaldo-dev/pos-capacitorjs)  
+[3] Native multi-scan and barcode accumulation pattern. [Capacitor Documentation](https://capacitorjs.com/)  
+[4] CameraX flash and torch control. [Android CameraX API Documentation](https://developer.android.com/training/camerax)

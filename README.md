@@ -1,16 +1,17 @@
 # Ini POS
 
-Ini POS adalah aplikasi **Point of Sale offline-first** untuk warung, toko kecil, kios, dan usaha rumahan. Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, atau menyiapkan backup.
+Ini POS adalah aplikasi **Point of Sale offline-first** profesional untuk warung, toko kecil, kios, dan usaha rumahan (UMKM). Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, menyiapkan backup, maupun menyinkronkan data ke cloud.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [Ini POS v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0)  
-> **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)
+> **Release publik:** [Ini POS v2.4.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.4.0)  
+> **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)  
+> **Panduan Google Drive:** [Konfigurasi Google Drive Sync](docs/GOOGLE_DRIVE_SETUP.md)
 
-## Tampilan aplikasi
+## Tampilan Aplikasi
 
 ### Tampilan Beranda (Desktop & Mobile)
 
-Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.2.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
+Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.4.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
 
 ![Dashboard Ini POS](docs/screenshots/dashboard.png)
 
@@ -20,7 +21,7 @@ Layout mobile dirancang untuk kenyamanan kasir harian dengan bilah navigasi bawa
 
 ![Dashboard mobile Ini POS](docs/screenshots/dashboard-mobile.png)
 
-## Galeri semua menu
+## Galeri Semua Menu
 
 Berikut adalah tampilan seluruh menu utama yang tersedia pada bottom navigation Ini POS. Galeri ini menunjukkan tampilan aplikasi dengan data simulasi (*dummy data*) agar setiap UMKM dapat melihat gambaran operasional toko yang lengkap dan profesional.
 
@@ -52,17 +53,17 @@ Kontrol persediaan yang menampilkan total produk, stok menipis, produk habis, st
 
 ### Transaksi
 
-Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, status, dan akses ke detail struk.
+Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, status, dan akses ke detail struk. Fitur ekspor laporan mencakup unduhan Excel (`.xlsx`) dan PDF profesional dengan filter tanggal fleksibel.
 
 ![Menu Transaksi](docs/screenshots/menu-transaksi.png)
 
 ### Pengaturan
 
-Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore, dan data demo. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
+Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore, data demo, dan **Sinkronisasi Google Drive**. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
 
 ![Menu Pengaturan](docs/screenshots/menu-pengaturan.png)
 
-## Fitur utama
+## Fitur Utama
 
 | Area | Kemampuan |
 |---|---|
@@ -72,16 +73,17 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Produk | CRUD katalog lengkap dengan **Foto Produk**, SKU/barcode, kategori, harga beli/jual, stok, dan menu aksi ringkas (⋮). |
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
-| Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (.xlsx) atau PDF profesional secara offline. |
+| Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (`.xlsx`) atau PDF profesional secara offline. |
+| Google Drive Sync | Backup dan pemulihan cloud opsional ke Google Drive pribadi pengguna dengan enkripsi lokal dan autentikasi OAuth. |
 | Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
 | Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
 | Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |
 
-## Setup toko untuk setiap UMKM
+## Setup Toko untuk Setiap UMKM
 
 Setelah aplikasi diinstal, buka menu **Pengaturan**. Masukkan nama toko, alamat, nomor telepon, dan footer yang ingin ditampilkan pada struk. Upload logo toko dalam format PNG, JPG, atau WebP. Logo dan identitas tersebut akan digunakan pada header aplikasi, dialog struk, hasil cetak, dan data backup lokal.
 
-Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan banyak produk**. Izinkan akses kamera Android ketika diminta. Scanner v1.7.0 membuka kamera native Android melalui plugin Capacitor khusus; frame kamera diproses langsung oleh CameraX dan Google ML Kit bundled di perangkat, bukan oleh HTML, JavaScript, WebView, CDN, server, atau API online. Tekan **Senter** bila pencahayaan kurang, lalu pindai beberapa barcode satu per satu. Kode yang sama diabaikan agar tidak terhitung dua kali. Tekan **Selesai** setelah seluruh belanjaan pembeli dipindai; semua produk yang ditemukan langsung masuk ke keranjang dalam satu proses. Jika ada barcode yang belum terdaftar, aplikasi membuka form **Tambah produk** satu per satu dengan barcode otomatis terisi sampai seluruh produk baru selesai dilengkapi.
+Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan banyak produk**. Izinkan akses kamera Android ketika diminta. Scanner membuka kamera native Android melalui plugin Capacitor khusus; frame kamera diproses langsung oleh CameraX dan Google ML Kit bundled di perangkat, bukan oleh HTML, JavaScript, WebView, CDN, server, atau API online. Tekan **Senter** bila pencahayaan kurang, lalu pindai beberapa barcode satu per satu. Kode yang sama diabaikan agar tidak terhitung dua kali. Tekan **Selesai** setelah seluruh belanjaan pembeli dipindai; semua produk yang ditemukan langsung masuk ke keranjang dalam satu proses. Jika ada barcode yang belum terdaftar, aplikasi membuka form **Tambah produk** satu per satu dengan barcode otomatis terisi sampai seluruh produk baru selesai dilengkapi.
 
 Untuk mendaftarkan produk dari awal, buka menu **Produk** lalu tekan **Scan barcode**. Setelah kamera membaca kode yang belum terdaftar, form tambah produk terbuka otomatis dan menampilkan notifikasi hijau bahwa barcode telah berhasil dipindai. Sistem menolak barcode yang sudah digunakan produk lain, baik ketika hasil scan ditemukan maupun ketika form disimpan. Jika ingin memasukkan barcode secara manual atau memindai dari form, tekan **＋ Tambah produk** lalu gunakan tombol **▣ Scan** pada kolom barcode.
 
@@ -97,13 +99,17 @@ Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar hist
 
 Struk dapat dicetak langsung ke **Printer Bluetooth Thermal** (58mm/80mm) menggunakan perintah ESC/POS native, atau melalui dialog print Android/browser dan Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
 
-## Menjalankan dari source code
+### Sinkronisasi Google Drive
+
+Fitur backup cloud opsional tersedia pada menu **Pengaturan → Sinkronisasi Google Drive**. Fitur ini memungkinkan Anda mencadangkan data transaksi, produk, dan pengaturan ke Google Drive pribadi. Karena menggunakan akun pribadi, pengguna perlu membuat Client ID OAuth di Google Cloud Console (panduan lengkap di [GOOGLE_DRIVE_SETUP.md](docs/GOOGLE_DRIVE_SETUP.md)). Setelah OAuth Client ID dimasukkan dan akun terhubung, Anda dapat melakukan backup manual, melihat daftar riwayat backup cloud, memulihkan data, atau mengaktifkan backup otomatis.
+
+## Menjalankan dari Source Code
 
 ### Prasyarat
 
 Gunakan Node.js 22 LTS, JDK 21 untuk Capacitor 8, serta Android SDK API 36. Android Studio tidak wajib untuk build command-line karena repository menyediakan Gradle Wrapper. Untuk menjalankan preview web saja, Node.js sudah cukup.
 
-### Web preview
+### Web Preview
 
 ```bash
 git clone https://github.com/Rifaldo-dev/pos-capacitorjs.git
@@ -131,9 +137,9 @@ APK debug dihasilkan pada lokasi berikut:
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Atau unduh APK siap instal dari [GitHub Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v1.7.0).
+Atau unduh APK siap instal dari folder [releases/](releases/) di repository ini.
 
-## Arsitektur offline
+## Arsitektur Offline
 
 Lapisan UI memakai state domain yang sama dengan adapter persistence. Pada Android, inisialisasi native menyiapkan SQLite melalui `@capacitor-community/sqlite`, termasuk tabel POS, foreign key, index, dan `schema_migrations`. Snapshot state disimpan agar UI dapat dipulihkan ketika aplikasi dibuka kembali. Browser preview menggunakan localStorage sebagai fallback supaya alur dapat diuji tanpa perangkat Android.
 
@@ -143,33 +149,35 @@ Struktur utama project adalah sebagai berikut:
 src/
 ├── App.tsx             # UI UMKM, bottom navigation, kasir, scanner bridge, branding, struk
 ├── nativeScanner.ts    # typed Capacitor bridge ke scanner Android native
+├── googleDrive.ts      # Google Drive OAuth dan backup/restore REST service
 ├── types.ts            # domain types dan store settings
 ├── pos.ts              # kalkulasi dan validasi domain
+├── reports.ts          # generator laporan Excel (.xlsx) dan PDF
 ├── storage.ts          # SQLite initialization, migration, persistence, backup
 ├── pos.test.ts         # unit tests
 └── styles.css          # mobile-first UI dan print stylesheet
 android/                # project Capacitor Android dengan Gradle Wrapper
 android/app/src/main/java/pos/rifaldo/NativeBarcodeScannerPlugin.java # CameraX + ML Kit native scanner
-capacitor.config.ts     # appId: pos.rifaldo
-docs/                   # catatan scanner dan screenshot UI
-releases/               # APK dan checksum yang ikut dipush ke repository
+capacitor.config.ts     # appId: pos.rifaldo, appName: Ini POS
+docs/                   # panduan pengguna, Google Drive setup, dan screenshot UI
+releases/               # folder rilis APK debug dan checksum SHA-256
 ```
 
-## Database dan integritas transaksi
+## Database dan Integritas Transaksi
 
 Native SQLite menyiapkan tabel `categories`, `products`, `customers`, `suppliers`, `transactions`, `transaction_items`, `stock_movements`, `expenses`, `settings`, `app_state`, dan `schema_migrations`. Foreign key, unique invoice/SKU constraints, serta index pencarian produk dan waktu transaksi disiapkan ketika database dibuka. Migration baru harus menaikkan `DB_VERSION` dan bersifat idempotent.
 
 Nilai uang disimpan sebagai integer Rupiah. Item transaksi mempertahankan snapshot nama, harga, quantity, dan subtotal sehingga histori tidak berubah ketika katalog diedit. Penyelesaian transaksi memperbarui transaksi, item, produk, dan stock movement melalui state yang divalidasi sebelum disimpan.
 
-## Format backup
+## Format Backup
 
-Backup menggunakan JSON berversi agar data toko dapat dipindahkan atau disimpan secara manual.
+Backup menggunakan JSON berversi agar data toko dapat dipindahkan atau disimpan secara manual maupun melalui Google Drive.
 
 ```json
 {
   "format": "POS Backup",
   "version": 1,
-  "createdAt": "2026-08-15T00:00:00.000Z",
+  "createdAt": "2026-08-17T00:00:00.000Z",
   "data": {
     "version": 1,
     "categories": [],
@@ -183,9 +191,9 @@ Backup menggunakan JSON berversi agar data toko dapat dipindahkan atau disimpan 
 }
 ```
 
-Restore memvalidasi format dan versi, lalu meminta konfirmasi sebelum mengganti data aktif. Logo toko disimpan sebagai data URL di snapshot lokal dan ikut terbawa dalam backup JSON.
+Restore memvalidasi format dan versi, lalu meminta konfirmasi sebelum mengganti data aktif. Logo toko disimpan sebagai data URL di snapshot lokal dan ikut terbawa dalam backup JSON maupun cloud sync.
 
-## Testing dan hasil verifikasi
+## Testing dan Hasil Verifikasi
 
 ```bash
 npm test
@@ -193,36 +201,12 @@ npm run lint
 npm run build
 ```
 
-Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **3 test lulus, lint 0 warning/0 error, web build berhasil, dan Android debug build berhasil**. Untuk pengujian perangkat, lakukan scan dengan internet aktif, Wi-Fi mati, data seluler mati, dan Airplane Mode aktif; seluruh alur scanner dirancang berjalan lokal.
+Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, ekspor laporan, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **test lulus, lint 0 warning/0 error, web build berhasil, dan Android debug build berhasil**. Untuk pengujian perangkat, lakukan scan dengan internet aktif, Wi-Fi mati, data seluler mati, dan Airplane Mode aktif; seluruh alur scanner dirancang berjalan lokal.
 
-## GitHub Release
+## GitHub Release & Releases Directory
 
-Rilis publik terbaru tersedia pada [v2.2.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.2.0). Versi ini membawa peningkatan visual besar dengan ikon modern, dashboard profesional, dukungan foto produk, serta fitur pencetakan langsung ke printer Bluetooth thermal.
+Seluruh APK rilis yang telah diverifikasi disimpan secara rapi di dalam direktori `releases/` di root repository untuk memudahkan pengunduhan langsung tanpa mengotori direktori utama. Rilis terbaru **v2.4.0** membawa branding resmi **Ini POS**, integrasi Google Drive Cloud Backup, ekspor laporan Excel/PDF, cetak Bluetooth thermal, serta peningkatan stabilitas scanner native [1].
 
-| Asset | Keterangan |
-|---|---|
-| `pos-rifaldo-v2.2.0-debug.apk` | APK debug v2.2.0 dengan scanner native, foto produk, dan printer Bluetooth. |
-| `pos-rifaldo-v2.2.0-debug.apk.sha256` | Checksum SHA-256 untuk verifikasi APK v2.2.0. |
+## Referensi
 
-### Catatan rilis v2.2.0
-
-Versi ini merupakan pencapaian besar dalam hal fungsionalitas dan estetika:
-- **Printer Bluetooth Thermal**: Dukungan penuh untuk printer thermal 58mm/80mm via Bluetooth Classic dengan format ESC/POS yang presisi.
-- **Foto Produk**: Pengguna dapat menambahkan foto pada setiap produk untuk katalog yang lebih profesional.
-- **UI Modern (v2.0.0+)**: Ikon SVG profesional menggantikan emoji, dashboard bisnis yang didesain ulang, dan menu aksi ringkas.
-- **Native Scanner**: Tetap menggunakan CameraX + ML Kit 100% offline dengan fitur senter dan multi-scan yang stabil.
-- **Data Demo**: Pemuatan data contoh yang kaya untuk mempermudah pengguna baru memahami alur aplikasi.
-
-### Catatan rilis v1.7.0
-
-Scanner kini mengikuti alur **Klik Scan banyak produk → Native Camera Scanner → Senter opsional → Deteksi lokal berulang → Selesai → hasil melalui Capacitor Bridge → pencarian database lokal → keranjang atau antrean form Add Product**. Satu sesi scanner dapat menangani banyak barang untuk satu pembeli tanpa membuka kamera berulang kali. Tidak ada `html5-qrcode`, scanner WebView, CDN, API, atau server yang digunakan. Permission kamera dideklarasikan pada Android dan diminta saat runtime melalui permission callback plugin.
-
-## Keterbatasan saat ini
-
-Versi ini belum menyediakan modul supplier/customer/purchasing/expenses yang lengkap, laporan custom range yang mendalam, ekspor data ke Excel/CSV, PIN app lock, atau dark mode native. Integrasi printer Bluetooth saat ini mendukung protokol Bluetooth Classic SPP yang umum digunakan oleh printer thermal thermal 58mm/80mm; printer berbasis BLE murni mungkin memerlukan pembaruan plugin di masa mendatang.
-
-## Sinkronisasi Google Drive
-
-Ini POS menyediakan backup cloud opsional ke akun Google pengguna. Dari **Pengaturan → Sinkronisasi Google Drive**, pengguna dapat menghubungkan akun Google, membuat backup JSON, melihat daftar backup, memulihkan data, dan mengaktifkan backup otomatis. Operasional kasir, scanner, dan penyimpanan lokal tetap berjalan tanpa internet; koneksi hanya diperlukan saat proses sinkronisasi.
-
-Sebelum digunakan, buat OAuth Client ID di Google Cloud Console dan masukkan Client ID tersebut di aplikasi. Panduan lengkap tersedia di [docs/GOOGLE_DRIVE_SETUP.md](docs/GOOGLE_DRIVE_SETUP.md).
+[1] Ini POS v2.4.0 Release Notes and Architecture. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases) [2] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)
