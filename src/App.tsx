@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { createBackup, initializeStore, newId, parseBackup, persistState, seedDemoData, timestamp } from './storage'
 import { NativeBarcodeScanner } from './nativeScanner'
 import { calculateCart, calculateChange, dateKey, formatDate, formatRupiah, todayKey, validateQuantity } from './pos'
-import type { CartItem, Page, PaymentMethod, PosState, Product, Transaction } from './types'
+import type { CartItem, Page, PaymentMethod, PosState, Product, StoreSettings, Transaction } from './types'
 import './styles.css'
 
 const paymentMethods: PaymentMethod[] = ['Tunai', 'QRIS', 'Transfer', 'Debit', 'Kredit', 'E-wallet', 'Lainnya']
@@ -284,19 +284,290 @@ function Products({ state, products, search, setSearch, onAdd, onScanAdd, scanne
 function Transactions({ state, onSelect }: { state: PosState; onSelect: (transaction: Transaction) => void }) { return <section className="page-body"><div className="toolbar"><div><h3 className="toolbar-title">Semua transaksi</h3><p className="muted">Riwayat tersimpan di perangkat ini</p></div><span className="filter-chip">Tap transaksi untuk detail</span></div><div className="panel table-panel"><div className="table-scroll"><table><thead><tr><th>Invoice</th><th>Waktu</th><th>Item</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody>{state.transactions.map((transaction) => <tr className="clickable" key={transaction.id} onClick={() => onSelect(transaction)}><td><strong className="mono">{transaction.invoiceNumber}</strong></td><td>{formatDate(transaction.createdAt)}</td><td>{transaction.items.reduce((sum, item) => sum + item.quantity, 0)} item</td><td><span className="category-chip">{transaction.paymentMethod}</span></td><td><strong>{formatRupiah(transaction.total)}</strong></td><td><span className={`status-badge ${transaction.status}`}>{transaction.status === 'completed' ? 'Selesai' : transaction.status === 'voided' ? 'Void' : 'Refund'}</span></td></tr>)}</tbody></table>{state.transactions.length === 0 && <Empty title="Belum ada transaksi" description="Transaksi yang selesai akan muncul di sini." />}</div></div></section> }
 function Inventory({ state, lowStock, onEdit, onAdjust }: { state: PosState; lowStock: Product[]; onEdit: (product: Product) => void; onAdjust: (product: Product) => void }) { return <section className="page-body"><div className="metric-grid compact"><Metric label="Total produk" value={String(state.products.length)} detail="Dalam katalog" tone="blue" /><Metric label="Stok menipis" value={String(lowStock.length)} detail="Di bawah minimum" tone="orange" /><Metric label="Produk habis" value={String(state.products.filter((p) => p.stock === 0).length)} detail="Perlu restock" tone="purple" /></div><div className="panel table-panel"><div className="table-meta"><div><h3>Kontrol stok</h3><p>Tambah, kurangi, atau set stok baru. Semua perubahan tercatat.</p></div></div><div className="table-scroll"><table><thead><tr><th>Produk</th><th>Stok saat ini</th><th>Minimum</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{state.products.map((product) => <tr key={product.id}><td><div className="table-product"><span className="product-avatar">{product.name.slice(0, 1)}</span><strong>{product.name}</strong></div></td><td><strong>{product.stock} {product.unit}</strong></td><td>{product.minimumStock} {product.unit}</td><td><span className={product.stock === 0 ? 'stock-badge danger' : product.stock <= product.minimumStock ? 'stock-badge warning' : 'stock-badge healthy'}>{product.stock === 0 ? 'Habis' : product.stock <= product.minimumStock ? 'Stok rendah' : 'Aman'}</span></td><td><div className="table-actions"><button className="small-button" onClick={() => onAdjust(product)}>Atur stok</button><button className="small-button" onClick={() => onEdit(product)}>Edit</button></div></td></tr>)}</tbody></table></div></div><div className="panel movement-panel"><div className="panel-heading"><div><h3>Riwayat perubahan stok</h3><p>Audit restock, penjualan, refund, dan penyesuaian.</p></div></div><div className="movement-list">{state.stockMovements.slice(0, 12).map((movement) => { const product = state.products.find((item) => item.id === movement.productId); return <div className="movement-row" key={movement.id}><span className={`movement-dot ${movement.type}`} /> <div><strong>{product?.name ?? 'Produk dihapus'}</strong><small>{movement.note} · {formatDate(movement.createdAt)}</small></div><b>{movement.type === 'sale' || movement.type === 'refund' ? `${movement.type === 'sale' ? '-' : '+'}${movement.quantity}` : `${movement.stockBefore} → ${movement.stockAfter}`}</b></div> })}{state.stockMovements.length === 0 && <Empty title="Belum ada perubahan stok" description="Aktivitas stok akan tercatat di sini." />}</div></div></section> }
 
+type SettingsSubPage = 'main' | 'identity' | 'logo' | 'operasional' | 'receipt' | 'appearance' | 'security' | 'data'
+
 function SettingsPage({ state, onSave, onBackup, onSeed }: { state: PosState; onSave: (next: PosState, message?: string) => Promise<void>; onBackup: () => void; onSeed: () => void }) {
-  const [settings, setSettings] = useState(state.settings)
-  const logoInput = useRef<HTMLInputElement>(null)
-  const handleLogo = (event: ChangeEvent<HTMLInputElement>) => {
+  const [activeSubPage, setActiveSubPage] = useState<SettingsSubPage>('main')
+  const [localSettings, setLocalSettings] = useState(state.settings)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  const handleToggle = async (key: keyof StoreSettings, value: boolean) => {
+    const nextSettings = { ...localSettings, [key]: value }
+    setLocalSettings(nextSettings)
+    await onSave({ ...state, settings: nextSettings })
+  }
+
+  const handleSaveSubPage = async (message?: string) => {
+    await onSave({ ...state, settings: localSettings }, message)
+    setActiveSubPage('main')
+  }
+
+  const handleLogoUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
+    if (!file || !file.type.startsWith('image/')) return
     const reader = new FileReader()
-    reader.onload = () => setSettings((current) => ({ ...current, storeLogo: String(reader.result ?? '') }))
+    reader.onload = () => setLocalSettings((prev) => ({ ...prev, storeLogo: String(reader.result ?? '') }))
     reader.readAsDataURL(file)
     event.target.value = ''
   }
-  return <section className="page-body"><div className="settings-intro"><div className="store-preview">{settings.storeLogo ? <img className="store-logo-image" src={settings.storeLogo} alt="Logo toko" /> : <div className="logo-mark">{settings.storeName.slice(0, 1).toUpperCase()}</div>}<div><strong>{settings.storeName || 'Nama toko Anda'}</strong><small>{settings.storeAddress || 'Alamat toko belum diatur'}</small></div></div><span className="offline-chip"><i /> Data lokal</span></div><div className="settings-grid"><div className="panel settings-panel"><div className="panel-heading"><div><h3>Identitas dan logo toko</h3><p>Branding ini tampil di aplikasi dan setiap struk pelanggan.</p></div></div><div className="logo-setting"><div className="logo-setting-preview">{settings.storeLogo ? <img src={settings.storeLogo} alt="Preview logo" /> : <span>{settings.storeName.slice(0, 1).toUpperCase() || 'T'}</span>}</div><div><strong>Logo toko</strong><small>Gunakan PNG/JPG persegi, maksimal sekitar 1 MB.</small><div className="inline-actions"><button type="button" className="small-button" onClick={() => logoInput.current?.click()}>Pilih logo</button>{settings.storeLogo && <button type="button" className="text-button" onClick={() => setSettings({ ...settings, storeLogo: '' })}>Hapus</button>}</div><input ref={logoInput} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogo} /></div></div><label>Nama toko<input value={settings.storeName} onChange={(e) => setSettings({ ...settings, storeName: e.target.value })} placeholder="Contoh: Warung Berkah" /></label><label>Alamat toko<textarea value={settings.storeAddress} onChange={(e) => setSettings({ ...settings, storeAddress: e.target.value })} rows={2} placeholder="Jl. ..." /></label><label>Nomor telepon<input value={settings.storePhone} onChange={(e) => setSettings({ ...settings, storePhone: e.target.value })} placeholder="08..." /></label><button className="button primary" onClick={() => onSave({ ...state, settings }, 'Branding dan identitas toko berhasil disimpan')}>Simpan identitas toko</button></div><div className="panel settings-panel"><div className="panel-heading"><div><h3>Struk & pembayaran</h3><p>Atur tampilan dan kebiasaan cetak struk.</p></div></div><label>Pajak (%)<input type="number" min="0" max="100" value={settings.taxRate} onChange={(e) => setSettings({ ...settings, taxRate: Number(e.target.value) })} /></label><label>Footer struk<textarea value={settings.receiptFooter} onChange={(e) => setSettings({ ...settings, receiptFooter: e.target.value })} rows={2} placeholder="Terima kasih..." /></label><label className="toggle-row"><span><strong>Cetak struk otomatis</strong><small>Dialog cetak dibuka setelah pembayaran berhasil.</small></span><input type="checkbox" checked={settings.autoPrintReceipt} onChange={(e) => setSettings({ ...settings, autoPrintReceipt: e.target.checked })} /></label><label className="toggle-row"><span><strong>Izinkan stok negatif</strong><small>Penjualan tetap dapat dilakukan saat stok 0.</small></span><input type="checkbox" checked={settings.allowNegativeStock} onChange={(e) => setSettings({ ...settings, allowNegativeStock: e.target.checked })} /></label><button className="button secondary" onClick={() => onSave({ ...state, settings }, 'Pengaturan struk berhasil disimpan')}>Simpan pengaturan struk</button></div></div><div className="settings-grid compact-settings"><div className="panel settings-action-panel"><strong>Backup data</strong><p>{settings.lastBackupAt ? `Backup terakhir ${formatDate(settings.lastBackupAt)}` : 'Belum pernah membuat backup.'}</p><button className="small-button" onClick={onBackup}>Kelola backup</button></div><div className="panel settings-action-panel"><strong>Data demo UMKM</strong><p>Isi katalog contoh untuk mencoba alur kasir.</p><button className="small-button" onClick={onSeed}>Muat data demo</button></div></div></section>
+
+  if (activeSubPage === 'identity') {
+    return (
+      <div className="settings-subpage">
+        <div className="settings-header">
+          <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
+          <h2>Identitas Toko</h2>
+        </div>
+        <div className="settings-subpage-content">
+          <div className="settings-form-group">
+            <label>Nama Toko</label>
+            <input value={localSettings.storeName} onChange={(e) => setLocalSettings({ ...localSettings, storeName: e.target.value })} placeholder="Nama toko Anda" />
+            <p className="settings-form-hint">Nama ini akan ditampilkan pada aplikasi dan struk.</p>
+          </div>
+          <div className="settings-form-group">
+            <label>Alamat Toko</label>
+            <textarea value={localSettings.storeAddress} onChange={(e) => setLocalSettings({ ...localSettings, storeAddress: e.target.value })} rows={3} placeholder="Alamat lengkap toko" />
+          </div>
+          <div className="settings-form-group">
+            <label>Nomor Telepon</label>
+            <input value={localSettings.storePhone} onChange={(e) => setLocalSettings({ ...localSettings, storePhone: e.target.value })} placeholder="08..." />
+          </div>
+        </div>
+        <div className="settings-save-area">
+          <button className="button primary" onClick={() => handleSaveSubPage('Identitas toko disimpan')}>Simpan</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSubPage === 'logo') {
+    return (
+      <div className="settings-subpage">
+        <div className="settings-header">
+          <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
+          <h2>Logo Toko</h2>
+        </div>
+        <div className="settings-subpage-content">
+          <div className="settings-logo-edit">
+            <div className="settings-logo-preview-large">
+              {localSettings.storeLogo ? <img src={localSettings.storeLogo} alt="Logo preview" /> : <span>{localSettings.storeName.slice(0, 1).toUpperCase()}</span>}
+            </div>
+            <div className="settings-logo-actions">
+              <button className="button secondary" onClick={() => logoInputRef.current?.click()}>Pilih dari Galeri</button>
+              {localSettings.storeLogo && <button className="text-button" style={{ color: '#d32f2f' }} onClick={() => setLocalSettings({ ...localSettings, storeLogo: '' })}>Hapus Logo</button>}
+              <input ref={logoInputRef} type="file" className="visually-hidden" accept="image/*" onChange={handleLogoUpload} />
+            </div>
+            <p className="settings-form-hint" style={{ textAlign: 'center' }}>Gunakan logo format PNG/JPG persegi untuk hasil terbaik pada struk.</p>
+          </div>
+        </div>
+        <div className="settings-save-area">
+          <button className="button primary" onClick={() => handleSaveSubPage('Logo toko diperbarui')}>Simpan</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSubPage === 'operasional') {
+    return (
+      <div className="settings-subpage">
+        <div className="settings-header">
+          <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
+          <h2>Operasional</h2>
+        </div>
+        <div className="settings-subpage-content">
+          <div className="settings-form-group">
+            <label>Pajak (%)</label>
+            <input type="number" min="0" max="100" value={localSettings.taxRate} onChange={(e) => setLocalSettings({ ...localSettings, taxRate: Number(e.target.value) })} />
+            <p className="settings-form-hint">Persentase pajak yang akan ditambahkan pada setiap transaksi.</p>
+          </div>
+          <div className="settings-group" style={{ borderTop: 0 }}>
+            <div className="settings-switch-row">
+              <div className="settings-switch-info">
+                <span className="settings-switch-label">Izinkan Stok Negatif</span>
+                <span className="settings-switch-desc">Penjualan tetap dapat dilakukan meskipun stok habis.</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" checked={localSettings.allowNegativeStock} onChange={(e) => handleToggle('allowNegativeStock', e.target.checked)} />
+                <span className="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="settings-save-area">
+          <button className="button primary" onClick={() => handleSaveSubPage('Pengaturan operasional disimpan')}>Simpan</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSubPage === 'receipt') {
+    return (
+      <div className="settings-subpage">
+        <div className="settings-header">
+          <button className="settings-back-btn" onClick={() => setActiveSubPage('main')}>←</button>
+          <h2>Struk & Pembayaran</h2>
+        </div>
+        <div className="settings-subpage-content">
+          <div className="settings-form-group">
+            <label>Footer Struk</label>
+            <textarea value={localSettings.receiptFooter} onChange={(e) => setLocalSettings({ ...localSettings, receiptFooter: e.target.value })} rows={3} placeholder="Pesan di bawah struk" />
+          </div>
+          <div className="settings-group" style={{ borderTop: 0 }}>
+            <div className="settings-switch-row">
+              <div className="settings-switch-info">
+                <span className="settings-switch-label">Cetak Struk Otomatis</span>
+                <span className="settings-switch-desc">Buka dialog cetak setelah transaksi selesai.</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" checked={localSettings.autoPrintReceipt} onChange={(e) => handleToggle('autoPrintReceipt', e.target.checked)} />
+                <span className="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="settings-save-area">
+          <button className="button primary" onClick={() => handleSaveSubPage('Pengaturan struk disimpan')}>Simpan</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <section className="settings-list-page">
+      <div className="settings-profile">
+        <div className="settings-profile-logo">
+          {localSettings.storeLogo ? <img src={localSettings.storeLogo} alt="Store logo" /> : localSettings.storeName.slice(0, 1).toUpperCase()}
+        </div>
+        <div className="settings-profile-info">
+          <h3>{localSettings.storeName}</h3>
+          <p>{localSettings.storeAddress || 'Alamat belum diatur'}</p>
+          <span className="settings-status-badge"><i></i> Data Lokal</span>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Identitas Toko</div>
+        <div className="settings-group">
+          <button className="settings-row" onClick={() => setActiveSubPage('identity')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Nama & Alamat</span>
+              <span className="settings-row-value">{localSettings.storeName}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+          <button className="settings-row" onClick={() => setActiveSubPage('logo')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Logo Toko</span>
+              <span className="settings-row-value">{localSettings.storeLogo ? 'Sudah terpasang' : 'Belum ada logo'}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+          <button className="settings-row" onClick={() => setActiveSubPage('identity')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Nomor Telepon</span>
+              <span className="settings-row-value">{localSettings.storePhone || 'Belum diatur'}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Operasional</div>
+        <div className="settings-group">
+          <button className="settings-row" onClick={() => setActiveSubPage('operasional')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Pajak & Stok</span>
+              <span className="settings-row-value">Pajak {localSettings.taxRate}% · Stok Negatif {localSettings.allowNegativeStock ? 'Aktif' : 'Mati'}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+          <div className="settings-switch-row">
+            <div className="settings-switch-info">
+              <span className="settings-switch-label">Izinkan Stok Negatif</span>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={localSettings.allowNegativeStock} onChange={(e) => handleToggle('allowNegativeStock', e.target.checked)} />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Struk & Pembayaran</div>
+        <div className="settings-group">
+          <button className="settings-row" onClick={() => setActiveSubPage('receipt')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Informasi Struk</span>
+              <span className="settings-row-value">Footer, auto-print, dll</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+          <div className="settings-switch-row">
+            <div className="settings-switch-info">
+              <span className="settings-switch-label">Cetak Struk Otomatis</span>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={localSettings.autoPrintReceipt} onChange={(e) => handleToggle('autoPrintReceipt', e.target.checked)} />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Data & Backup</div>
+        <div className="settings-group">
+          <button className="settings-row" onClick={onBackup}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Kelola Backup</span>
+              <span className="settings-row-value">{localSettings.lastBackupAt ? `Terakhir: ${formatDate(localSettings.lastBackupAt)}` : 'Belum pernah backup'}</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+          <button className="settings-row" onClick={onSeed}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Muat Data Demo</span>
+              <span className="settings-row-value">Isi produk contoh</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Tentang</div>
+        <div className="settings-group">
+          <div className="settings-row">
+            <div className="settings-row-info">
+              <span className="settings-row-label">Versi Aplikasi</span>
+              <span className="settings-row-value">1.5.0</span>
+            </div>
+          </div>
+          <div className="settings-row">
+            <div className="settings-row-info">
+              <span className="settings-row-label">Database</span>
+              <span className="settings-row-value">SQLite Lokal</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title" style={{ color: '#d32f2f' }}>Zona Berbahaya</div>
+        <div className="settings-group">
+          <button className="settings-row settings-danger-row" onClick={() => window.confirm('Hapus semua data?') && onSave({ ...state, products: [], transactions: [], stockMovements: [] }, 'Seluruh data berhasil dihapus')}>
+            <div className="settings-row-info">
+              <span className="settings-row-label">Hapus Semua Data</span>
+              <span className="settings-row-value">Tindakan ini tidak dapat dibatalkan</span>
+            </div>
+            <span className="settings-row-chevron">›</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function ProductModal({ state, product, prefilledBarcode, onClose, onSubmit, onScan }: { state: PosState; product: Product | null; prefilledBarcode: string; onClose: () => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void; onScan: () => Promise<string | null> }) { const [barcode, setBarcode] = useState(product?.barcode ?? prefilledBarcode); const scanAndFill = async () => { const code = await onScan(); if (code) setBarcode(code) }; return <Modal title={product ? 'Edit produk UMKM' : 'Tambah produk UMKM'} onClose={onClose}><form className="form-grid" onSubmit={(event) => { const data = new FormData(event.currentTarget); if (barcode && !data.get('barcode')) { event.currentTarget.querySelector<HTMLInputElement>('input[name="barcode"]')!.value = barcode } onSubmit(event) }}><input type="hidden" name="productId" value={product?.id ?? ''} /><div className="form-section"><h4>Informasi produk</h4>{!product && prefilledBarcode && <div className="scanner-prefill-notice"><span>✓</span><div><strong>Barcode berhasil dipindai</strong><small>{prefilledBarcode} · Lengkapi data produk lalu simpan.</small></div></div>}<label>Nama produk *<input name="name" autoFocus required defaultValue={product?.name ?? ''} placeholder="Contoh: Beras 5kg" /></label><div className="two-col"><label>SKU<input name="sku" defaultValue={product?.sku ?? ''} placeholder="SKU-001" /></label><label>Barcode<input name="barcode" inputMode="numeric" value={barcode} onChange={(event) => setBarcode(event.target.value)} placeholder="Scan atau ketik barcode" /><button type="button" className="small-button scan-inline" onClick={scanAndFill}>▣ Scan</button></label></div><label>Kategori<select name="categoryId" defaultValue={product?.categoryId ?? state.categories[0]?.id}>{state.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label></div><div className="form-section"><h4>Harga & stok</h4><div className="two-col"><label>Harga beli<input name="purchasePrice" type="number" min="0" inputMode="numeric" defaultValue={product?.purchasePrice ?? 0} /></label><label>Harga jual *<input name="sellingPrice" type="number" min="1" inputMode="numeric" required defaultValue={product?.sellingPrice ?? ''} /></label></div><div className="three-col"><label>Stok<input name="stock" type="number" min="0" inputMode="numeric" defaultValue={product?.stock ?? 0} /></label><label>Minimum stok<input name="minimumStock" type="number" min="0" inputMode="numeric" defaultValue={product?.minimumStock ?? 5} /></label><label>Satuan<input name="unit" defaultValue={product?.unit ?? 'pcs'} /></label></div>{product && <p className="form-hint">Perubahan stok dari form ini akan dicatat sebagai penyesuaian stok. Gunakan menu <strong>Stok</strong> untuk perubahan cepat.</p>}</div><div className="modal-actions"><button type="button" className="button secondary" onClick={onClose}>Batal</button><button className="button primary" type="submit">{product ? 'Simpan perubahan' : 'Simpan produk'}</button></div></form></Modal> }
