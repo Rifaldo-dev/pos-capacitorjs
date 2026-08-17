@@ -31,6 +31,7 @@ Pengelolaan produk dirancang agar pemilik toko dapat mendata barang dengan cepat
 - **Tambah Produk Manual**: Masukkan nama, SKU, kategori, harga beli, harga jual, stok awal, dan satuan (misal: pcs, kg, botol).
 - **Scan Barcode Cepat (Barcode-First)**: Pada menu **Produk**, tekan tombol **Scan barcode** di toolbar atas. Arahkan kamera ke barcode produk baru. Jika barcode belum terdaftar di database, aplikasi secara otomatis membuka form **Tambah produk** dengan kolom barcode yang sudah terisi. Anda tinggal melengkapi nama dan harga, lalu menyimpan produk baru tersebut tanpa mengetik ulang kode [2].
 - **Validasi Duplikasi**: Sistem secara otomatis menolak duplikasi barcode untuk mencegah kesalahan pencatatan barang.
+- **Menu Aksi Tiga Titik**: Pada daftar Produk, tekan tombol **⋮** di kolom Aksi untuk membuka pilihan **Edit produk**, **Atur stok**, **Aktifkan/Nonaktifkan**, dan **Hapus produk**. Menu ini sengaja diringkas agar tabel tetap bersih dan nyaman digunakan di layar HP.
 
 ---
 

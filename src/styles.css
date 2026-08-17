@@ -243,3 +243,13 @@ input:checked + .slider:before { transform: translateX(20px); }
   .settings-list-page { max-width: 600px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
   .settings-subpage { max-width: 600px; margin: 0 auto; left: 50%; transform: translateX(-50%); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
 }
+
+/* Product row actions: keep the table clean with one ellipsis trigger. */
+.table-actions { position: relative; display: flex; justify-content: flex-end; min-width: 58px; }
+.ellipsis-button { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: white; font-size: 22px; font-weight: 850; line-height: 1; }
+.ellipsis-button:hover, .ellipsis-button[aria-expanded="true"] { border-color: #f1b79a; color: var(--primary-dark); background: #fff8f3; }
+.action-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: grid; min-width: 166px; padding: 5px; border: 1px solid var(--line); border-radius: 12px; background: white; box-shadow: 0 12px 28px rgba(23,32,51,.16); }
+.action-menu button { width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; color: var(--ink); background: transparent; text-align: left; font-size: 12px; font-weight: 700; }
+.action-menu button:hover, .action-menu button:focus-visible { outline: 0; background: #fff4ed; color: var(--primary-dark); }
+.action-menu button.menu-danger { color: #b43b37; }
+@media (max-width: 720px) { .table-actions { min-width: 48px; } .ellipsis-button { width: 34px; height: 34px; } .action-menu { position: fixed; right: 16px; min-width: 180px; } }

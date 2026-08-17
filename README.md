@@ -69,7 +69,7 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Dashboard | Ringkasan penjualan, laba kotor, produk terlaris, stok menipis, transaksi terbaru, dan aksi cepat. |
 | Kasir | Pencarian produk berdasarkan nama, SKU, atau barcode; keranjang; diskon; pajak; pembayaran tunai/non-tunai; kembalian; dan invoice. |
 | Scan kamera | Scanner native Android melalui Capacitor Plugin/Bridge dengan CameraX dan Google ML Kit bundled; berjalan 100% offline, mendukung senter, multi-scan di Kasir, EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF, serta QR Code, lalu mencari produk lokal atau membuka form barcode-first. |
-| Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. |
+| Produk | CRUD katalog: tambah, lihat, edit nama/SKU/barcode/kategori/harga/stok/minimum stok, aktifkan/nonaktifkan, dan hapus aman dengan perlindungan histori transaksi. Aksi produk diringkas dalam menu tiga titik (⋮). |
 | Stok | Tambah, kurangi, atau set stok; catatan alasan; validasi agar stok tidak negatif; serta riwayat stock movement dengan stok sebelum dan sesudah. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk, dan bagikan struk. |
 | Branding UMKM | Ubah nama toko, upload logo, alamat, nomor telepon, footer struk, pajak, serta pilihan cetak otomatis. |
@@ -83,7 +83,7 @@ Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan banyak produk**. Izinka
 
 Untuk mendaftarkan produk dari awal, buka menu **Produk** lalu tekan **Scan barcode**. Setelah kamera membaca kode yang belum terdaftar, form tambah produk terbuka otomatis dan menampilkan notifikasi hijau bahwa barcode telah berhasil dipindai. Sistem menolak barcode yang sudah digunakan produk lain, baik ketika hasil scan ditemukan maupun ketika form disimpan. Jika ingin memasukkan barcode secara manual atau memindai dari form, tekan **＋ Tambah produk** lalu gunakan tombol **▣ Scan** pada kolom barcode.
 
-Untuk mengelola katalog, buka **Produk**. Tekan **Edit** untuk mengubah informasi produk, harga, kategori, barcode, minimum stok, atau stok. Untuk operasi stok harian yang lebih cepat, buka **Stok**, tekan **Atur stok**, lalu pilih salah satu mode berikut:
+Untuk mengelola katalog, buka **Produk**. Pada kolom **Aksi**, tekan menu tiga titik **⋮** untuk membuka pilihan **Edit produk**, **Atur stok**, **Aktifkan/Nonaktifkan**, atau **Hapus produk**. Tekan **Edit produk** untuk mengubah informasi produk, harga, kategori, barcode, minimum stok, atau stok. Untuk operasi stok harian yang lebih cepat, buka **Stok**, tekan **Atur stok**, lalu pilih salah satu mode berikut:
 
 | Mode | Kegunaan |
 |---|---|
