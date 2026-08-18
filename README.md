@@ -3,15 +3,14 @@
 Ini POS adalah aplikasi **Point of Sale offline-first** profesional untuk warung, toko kecil, kios, dan usaha rumahan (UMKM). Aplikasi berjalan sebagai client-only Android app menggunakan React, TypeScript, Vite, CapacitorJS, dan SQLite lokal. Tidak diperlukan server pusat untuk mencatat transaksi, mengelola produk, mengatur stok, menyiapkan backup, maupun menyinkronkan data ke cloud.
 
 > **Package Android:** `pos.rifaldo`  
-> **Release publik:** [Ini POS v2.5.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.5.0)
+> **Release publik:** [Ini POS v2.6.0](https://github.com/Rifaldo-dev/pos-capacitorjs/releases/tag/v2.6.0)
 > **Panduan Pengguna:** [Baca Panduan Pengguna Lengkap (Bahasa Indonesia)](docs/PANDUAN_PENGGUNA.md)  
-
 
 ## Tampilan Aplikasi
 
 ### Tampilan Beranda (Desktop & Mobile)
 
-Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.5.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
+Beranda dirancang sebagai dashboard operasional bisnis yang profesional dan bersih (v2.6.0), menampilkan identitas toko, status operasional offline, ringkasan penjualan harian, laba kotor, produk terlaris, stok menipis, transaksi terbaru, serta akses cepat ke fungsi utama. Navigasi bawah menggunakan ikon SVG yang konsisten dan selalu siap diakses di semua ukuran layar. Tampilan kini semakin menarik dengan dukungan foto produk di bagian ringkasan stok.
 
 ![Dashboard Ini POS](docs/screenshots/dashboard.png)
 
@@ -59,7 +58,7 @@ Riwayat transaksi dengan invoice, waktu, jumlah item, metode pembayaran, total, 
 
 ### Pengaturan
 
-Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore melalui Android Share Sheet, dan data demo. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
+Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon, pajak, footer struk, printer Bluetooth thermal, cetak otomatis, backup/restore folder lokal, dan data demo. Menu Printer Bluetooth memungkinkan Anda menghubungkan aplikasi langsung ke printer struk thermal Anda.
 
 ![Menu Pengaturan](docs/screenshots/menu-pengaturan.png)
 
@@ -74,141 +73,85 @@ Pengaturan publik untuk setiap UMKM: logo toko, nama toko, alamat, nomor telepon
 | Stok | Manajemen stok (tambah/kurang/set), catatan alasan, validasi stok negatif, dan riwayat pergerakan stok lengkap. |
 | Transaksi | Riwayat invoice, detail transaksi, void, pengembalian stok, cetak struk sistem, bagikan struk, **Cetak Bluetooth Thermal**, dan **Ekspor Laporan**. |
 | Laporan | Filter penjualan berdasarkan rentang tanggal dan ekspor data ke format Excel (`.xlsx`) atau PDF profesional secara offline. |
-| Cadangan & Pemulihan | Pencadangan otomatis ke folder lokal **Documents/IniPOS_Backups** di perangkat tanpa memerlukan Google Drive atau Client ID. |},{all:false,find:},{all:false,find:
+| Cadangan & Pemulihan | Pencadangan otomatis ke folder lokal **Documents/IniPOS_Backups** di perangkat secara mandiri dan offline. |
 | Printer Bluetooth | Koneksi langsung ke printer thermal (58mm/80mm) via Bluetooth Classic, format ESC/POS presisi, dan fitur cetak otomatis setelah transaksi. |
 | Branding UMKM | Kustomisasi logo toko, nama, alamat, nomor telepon, footer struk, dan pengaturan operasional lainnya. |
 | Data offline | SQLite lokal Android, localStorage fallback browser, backup/restore JSON, dan pemuatan data demo. |
 
-## Setup Toko untuk Setiap UMKM
+## Arsitektur & Struktur Proyek
 
-Setelah aplikasi diinstal, buka menu **Pengaturan**. Masukkan nama toko, alamat, nomor telepon, dan footer yang ingin ditampilkan pada struk. Upload logo toko dalam format PNG, JPG, atau WebP. Logo dan identitas tersebut akan digunakan pada header aplikasi, dialog struk, hasil cetak, dan data backup lokal.
+Aplikasi ini menggunakan arsitektur modular untuk memastikan kemudahan pengembangan dan pemeliharaan. Kode sumber diatur sebagai berikut:
 
-Untuk transaksi, buka **Kasir** lalu tekan tombol **Scan banyak produk**. Izinkan akses kamera Android ketika diminta. Scanner membuka kamera native Android melalui plugin Capacitor khusus; frame kamera diproses langsung oleh CameraX dan Google ML Kit bundled di perangkat, bukan oleh HTML, JavaScript, WebView, CDN, server, atau API online. Tekan **Senter** bila pencahayaan kurang, lalu pindai beberapa barcode satu per satu. Kode yang sama diabaikan agar tidak terhitung dua kali. Tekan **Selesai** setelah seluruh belanjaan pembeli dipindai; semua produk yang ditemukan langsung masuk ke keranjang dalam satu proses. Jika ada barcode yang belum terdaftar, aplikasi membuka form **Tambah produk** satu per satu dengan barcode otomatis terisi sampai seluruh produk baru selesai dilengkapi.
+```text
+src/
+├── App.tsx             # Orchestration, state utama, dan event handlers
+├── components/         # Komponen UI modular
+│   ├── common.tsx      # Komponen visual bersama (Ikon, Modal dasar, Empty state)
+│   ├── navigation.tsx  # Bottom Navigation bar
+│   ├── pages.tsx       # Seluruh halaman menu (Dashboard, Kasir, Produk, dll.)
+│   ├── modals.tsx      # Modal interaktif (Product, Payment, Transaction, Backup)
+│   └── componentTypes.ts # Tipe data khusus UI
+├── utils/              # Fungsi utilitas mandiri
+│   └── images.ts       # Kompresi dan pemrosesan gambar produk
+├── constants.ts        # Konstanta global (Metode pembayaran, Folder backup)
+├── types.ts            # Definisi tipe data domain dan pengaturan toko
+├── storage.ts          # Inisialisasi SQLite, migrasi, dan persistensi data
+├── nativeScanner.ts    # Bridge Capacitor ke scanner native Android
+├── thermalPrinter.ts   # Driver printer thermal ESC/POS
+├── bluetoothPrinter.ts # Manajemen koneksi Bluetooth
+├── reports.ts          # Logika ekspor laporan Excel (.xlsx) dan PDF
+├── pos.ts              # Kalkulasi bisnis dan validasi domain
+├── styles.css          # Mobile-first UI dan print stylesheet
+└── main.tsx            # Entry point React
+```
 
-Untuk mendaftarkan produk dari awal, buka menu **Produk** lalu tekan **Scan barcode**. Setelah kamera membaca kode yang belum terdaftar, form tambah produk terbuka otomatis dan menampilkan notifikasi hijau bahwa barcode telah berhasil dipindai. Sistem menolak barcode yang sudah digunakan produk lain, baik ketika hasil scan ditemukan maupun ketika form disimpan. Jika ingin memasukkan barcode secara manual atau memindai dari form, tekan **＋ Tambah produk** lalu gunakan tombol **▣ Scan** pada kolom barcode.
+## Panduan Kontribusi
 
-Untuk mengelola katalog, buka **Produk**. Pada kolom **Aksi**, tekan menu tiga titik **⋮** untuk membuka pilihan **Edit produk**, **Atur stok**, **Aktifkan/Nonaktifkan**, atau **Hapus produk**. Tekan **Edit produk** untuk mengubah informasi produk, harga, kategori, barcode, minimum stok, atau stok. Untuk operasi stok harian yang lebih cepat, buka **Stok**, tekan **Atur stok**, lalu pilih salah satu mode berikut:
+Kami sangat terbuka bagi pengembang lain yang ingin berkontribusi dalam menyempurnakan **Ini POS**. Berikut adalah panduan untuk memulai:
 
-| Mode | Kegunaan |
-|---|---|
-| Tambah stok | Restock dari supplier atau stok masuk lainnya. |
-| Kurangi stok | Produk rusak, kedaluwarsa, hilang, atau penyesuaian keluar. |
-| Set stok | Stock opname atau koreksi ke jumlah fisik terbaru. |
+### 1. Persiapan Lingkungan
+Pastikan perangkat Anda memiliki:
+*   **Node.js**: Versi 22 LTS atau lebih baru.
+*   **JDK**: Versi 21 (Diperlukan untuk Capacitor 8).
+*   **Android SDK**: API level 36.
+*   **Android Studio**: Disarankan untuk debugging native.
 
-Produk yang sudah pernah muncul dalam transaksi tidak dihapus permanen agar histori invoice tetap aman. Gunakan **Nonaktifkan** supaya produk tidak muncul lagi di Kasir; produk tersebut dapat diaktifkan kembali kapan saja.
+### 2. Langkah Pengembangan
+1.  **Fork & Clone**: Fork repositori ini dan clone ke lokal Anda.
+2.  **Instalasi**: Jalankan `npm install` untuk memasang dependensi.
+3.  **Branching**: Buat branch baru untuk fitur atau perbaikan bug Anda (`git checkout -b fitur/nama-fitur`).
+4.  **Development**: Jalankan `npm run dev` untuk preview web.
+5.  **Testing**: Pastikan kode baru tidak merusak fitur lama dengan menjalankan `npm test`.
+6.  **Commit**: Gunakan pesan commit yang deskriptif dalam bahasa Indonesia atau Inggris.
+7.  **Push & PR**: Push branch Anda dan buat Pull Request ke repositori utama.
 
-Struk dapat dicetak langsung ke **Printer Bluetooth Thermal** (58mm/80mm) menggunakan perintah ESC/POS native, atau melalui dialog print Android/browser dan Android Share. Jika sistem Share tidak tersedia, aplikasi menyediakan fallback berupa penyalinan teks struk.
-
-### Cadangan & Pemulihan (Folder Lokal Perangkat)
-	
-	Fitur pencadangan data mandiri tersedia pada menu **Pengaturan → Cadangan & Pemulihan**. Aplikasi ini dirancang 100% mandiri tanpa memerlukan konfigurasi *Client ID*, akun pengembang, atau server pihak ketiga. 
-	
-	Setiap kali Anda menekan tombol **Simpan ke folder lokal**, aplikasi secara otomatis membuat folder **Documents/IniPOS_Backups** di memori internal HP Anda dan menyimpan file JSON cadangan di sana. Anda dapat melihat daftar file backup yang tersedia beserta ukurannya, lalu memulihkannya kapan saja dengan satu sentuhan. Folder ini dapat diakses langsung menggunakan aplikasi File Manager bawaan Android.
+### 3. Standar Kode
+*   **TypeScript**: Gunakan tipe data yang ketat (strict typing).
+*   **Modularitas**: Jangan masukkan semua logika ke `App.tsx`. Gunakan folder `components`, `utils`, atau `hooks`.
+*   **Komentar**: Tambahkan komentar pada logika bisnis yang kompleks.
+*   **Linting**: Pastikan tidak ada error lint sebelum melakukan commit (`npm run lint`).
 
 ## Menjalankan dari Source Code
 
-### Prasyarat
-
-Gunakan Node.js 22 LTS, JDK 21 untuk Capacitor 8, serta Android SDK API 36. Android Studio tidak wajib untuk build command-line karena repository menyediakan Gradle Wrapper. Untuk menjalankan preview web saja, Node.js sudah cukup.
-
 ### Web Preview
-
 ```bash
-git clone https://github.com/Rifaldo-dev/pos-capacitorjs.git
-cd pos-capacitorjs
-nvm use
 npm install
 npm run dev
 ```
-
-Preview browser memakai localStorage sebagai fallback persistence. Kamera QR/barcode native digunakan pada APK Android; browser preview dapat digunakan untuk meninjau layout dan alur POS. Dukungan suara/getar bergantung pada izin dan kemampuan perangkat, sehingga scanner tetap berfungsi ketika feedback hardware tidak tersedia.
+Preview browser memakai localStorage sebagai fallback persistence.
 
 ### Build Android
-
 ```bash
 npm run build
 npx cap sync android
 cd android
-export JAVA_HOME=/path/to/jdk-21
-./gradlew -Dorg.gradle.java.installations.paths="$JAVA_HOME" assembleDebug
+./gradlew assembleDebug
 ```
+APK debug dihasilkan di `android/app/build/outputs/apk/debug/app-debug.apk`. Atau gunakan file APK yang sudah tersedia di folder [releases/](releases/).
 
-APK debug dihasilkan pada lokasi berikut:
+## Lisensi & Referensi
 
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
+Aplikasi ini dikembangkan untuk mendukung digitalisasi UMKM Indonesia secara gratis dan mandiri.
 
-Atau unduh APK siap instal dari folder [releases/](releases/) di repository ini.
-
-## Arsitektur Offline
-
-Lapisan UI memakai state domain yang sama dengan adapter persistence. Pada Android, inisialisasi native menyiapkan SQLite melalui `@capacitor-community/sqlite`, termasuk tabel POS, foreign key, index, dan `schema_migrations`. Snapshot state disimpan agar UI dapat dipulihkan ketika aplikasi dibuka kembali. Browser preview menggunakan localStorage sebagai fallback supaya alur dapat diuji tanpa perangkat Android.
-
-Struktur utama project adalah sebagai berikut:
-
-```text
-src/
-├── App.tsx             # UI UMKM, bottom navigation, kasir, scanner bridge, branding, struk
-├── nativeScanner.ts    # typed Capacitor bridge ke scanner Android native
-├── googleDrive.ts      # Google Drive OAuth dan backup/restore REST service
-├── types.ts            # domain types dan store settings
-├── pos.ts              # kalkulasi dan validasi domain
-├── reports.ts          # generator laporan Excel (.xlsx) dan PDF
-├── storage.ts          # SQLite initialization, migration, persistence, backup
-├── pos.test.ts         # unit tests
-└── styles.css          # mobile-first UI dan print stylesheet
-android/                # project Capacitor Android dengan Gradle Wrapper
-android/app/src/main/java/pos/rifaldo/NativeBarcodeScannerPlugin.java # CameraX + ML Kit native scanner
-capacitor.config.ts     # appId: pos.rifaldo, appName: Ini POS
-docs/                   # panduan pengguna, Google Drive setup, dan screenshot UI
-releases/               # folder rilis APK debug dan checksum SHA-256
-```
-
-## Database dan Integritas Transaksi
-
-Native SQLite menyiapkan tabel `categories`, `products`, `customers`, `suppliers`, `transactions`, `transaction_items`, `stock_movements`, `expenses`, `settings`, `app_state`, dan `schema_migrations`. Foreign key, unique invoice/SKU constraints, serta index pencarian produk dan waktu transaksi disiapkan ketika database dibuka. Migration baru harus menaikkan `DB_VERSION` dan bersifat idempotent.
-
-Nilai uang disimpan sebagai integer Rupiah. Item transaksi mempertahankan snapshot nama, harga, quantity, dan subtotal sehingga histori tidak berubah ketika katalog diedit. Penyelesaian transaksi memperbarui transaksi, item, produk, dan stock movement melalui state yang divalidasi sebelum disimpan.
-
-## Format Backup
-
-Backup menggunakan JSON berversi agar data toko dapat dipindahkan atau disimpan secara manual maupun melalui Google Drive.
-
-```json
-{
-  "format": "POS Backup",
-  "version": 1,
-  "createdAt": "2026-08-17T00:00:00.000Z",
-  "data": {
-    "version": 1,
-    "categories": [],
-    "products": [],
-    "customers": [],
-    "transactions": [],
-    "expenses": [],
-    "stockMovements": [],
-    "settings": {}
-  }
-}
-```
-
-Restore memvalidasi format dan versi, lalu meminta konfirmasi sebelum mengganti data aktif. Logo toko disimpan sebagai data URL di snapshot lokal dan ikut terbawa dalam backup JSON maupun cloud sync.
-
-## Testing dan Hasil Verifikasi
-
-```bash
-npm test
-npm run lint
-npm run build
-```
-
-Suite saat ini mencakup perhitungan subtotal, diskon, pajak, total, kembalian yang aman, ekspor laporan, dan pencegahan penjualan ketika stok tidak mencukupi. Verifikasi terakhir menghasilkan **test lulus, lint 0 warning/0 error, web build berhasil, dan Android debug build berhasil**. Untuk pengujian perangkat, lakukan scan dengan internet aktif, Wi-Fi mati, data seluler mati, dan Airplane Mode aktif; seluruh alur scanner dirancang berjalan lokal.
-
-## GitHub Release & Releases Directory
-
-Seluruh APK rilis yang telah diverifikasi disimpan secara rapi di dalam direktori `releases/` di root repository untuk memudahkan pengunduhan langsung tanpa mengotori direktori utama. Rilis terbaru **v2.5.0** membawa tracking visual barcode real-time pada scanner native, backup zero-config melalui Android Share Sheet, ekspor laporan Excel/PDF, cetak Bluetooth thermal, serta branding resmi **Ini POS** [1].
-
-## Referensi
-
-[1] Ini POS v2.5.0 Release Notes and Architecture. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases) [2] SQLite local storage in Capacitor Android. [Android Developers SQLite Guide](https://developer.android.com/training/data-storage/sqlite)
+[1] Ini POS v2.6.0 Release Notes. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases)  
+[2] Capacitor Documentation. [CapacitorJS Official Site](https://capacitorjs.com/docs)
