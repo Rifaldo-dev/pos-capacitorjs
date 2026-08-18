@@ -149,9 +149,11 @@ cd android
 ```
 APK debug dihasilkan di `android/app/build/outputs/apk/debug/app-debug.apk`. Atau gunakan file APK yang sudah tersedia di folder [releases/](releases/).
 
-## Lisensi & Referensi
+## Lisensi
 
-Aplikasi ini dikembangkan untuk mendukung digitalisasi UMKM Indonesia secara gratis dan mandiri.
+Proyek ini dilisensikan di bawah **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**. 
+
+Artinya, Anda bebas menggunakan, membagikan, dan memodifikasi aplikasi ini untuk kebutuhan pribadi atau operasional UMKM secara gratis, namun **TIDAK DIIZINKAN** untuk memperjualbelikan aplikasi ini atau mengambil keuntungan komersial darinya tanpa izin tertulis dari pembuat.
 
 [1] Ini POS v2.6.0 Release Notes. [GitHub Repository Releases](https://github.com/Rifaldo-dev/pos-capacitorjs/releases)  
-[2] Capacitor Documentation. [CapacitorJS Official Site](https://capacitorjs.com/docs)
+[2] Creative Commons Attribution-NonCommercial 4.0 International License. [CC BY-NC 4.0 Legal Code](https://creativecommons.org/licenses/by-nc/4.0/)
